@@ -1,7 +1,7 @@
 import { checkAccess, completeJSON, errorResponse, LEVEL_PROFILES } from "@/lib/ai";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 interface Body {
   task?: string;

@@ -1,7 +1,7 @@
 import { checkAccess, completeJSON, errorResponse, LEVEL_PROFILES, type ChatMessage } from "@/lib/ai";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 interface Body {
   messages?: { role: "user" | "assistant"; content: string }[];

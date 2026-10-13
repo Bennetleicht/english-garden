@@ -229,7 +229,7 @@ export default function ConversationPage() {
 
         {loading && (
           <div className="flex items-center gap-2 text-navy-500">
-            <Loader2 className="h-4 w-4 animate-spin" /> {messages.length === 0 ? "Dein Gesprächspartner überlegt sich einen Einstieg …" : "schreibt …"}
+            <Loader2 className="h-4 w-4 animate-spin" /> {messages.length === 0 ? "Dein Gesprächspartner überlegt sich einen Einstieg … (das kann einen Moment dauern)" : "schreibt … (manchmal dauert es etwas länger)"}
           </div>
         )}
         {error && (

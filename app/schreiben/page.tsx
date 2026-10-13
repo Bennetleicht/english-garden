@@ -202,6 +202,7 @@ export default function WritingPage() {
             </Button>
           </div>
         </div>
+        {loading && <p className="mt-4 text-navy-500">Dein Text wird gelesen. Das dauert meist ein paar Sekunden, manchmal bis zu einer Minute.</p>}
         {error && (
           <div className="mt-4">
             <ErrorNote message={error} />
