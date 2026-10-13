@@ -2,29 +2,9 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { Check, ChevronRight, RotateCcw, X } from "lucide-react";
-import type { Exercise } from "@/lib/content/grammar";
+import { matchesAny, normalizeAnswer, shuffleWords } from "@/lib/answers";
+import type { Exercise } from "@/lib/content/types";
 import { Button, ProgressBar } from "./ui";
-
-function normalize(s: string) {
-  return s
-    .toLowerCase()
-    // Apostrophe ignorieren: "dont" zählt wie "don't" (typischer Tipp-Unterschied auf Tablets)
-    .replace(/['’`´]/g, "")
-    .replace(/[.!?,]+$/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function shuffle<T>(items: T[]): T[] {
-  const arr = [...items];
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  // Nicht zufällig schon richtig sortiert anzeigen
-  if (arr.length > 1 && arr.every((w, i) => w === items[i])) return [...arr.slice(1), arr[0]];
-  return arr;
-}
 
 /** Führt nacheinander durch alle Übungen einer Lektion. */
 export function ExerciseRunner({ exercises, onFinish }: { exercises: Exercise[]; onFinish: (correct: number, total: number) => void }) {
@@ -145,7 +125,7 @@ function GapExercise({
   const [value, setValue] = useState("");
   const check = () => {
     if (!value.trim() || locked) return;
-    onResult(exercise.answers.some((a) => normalize(a) === normalize(value)));
+    onResult(matchesAny(value, exercise.answers));
   };
 
   return (
@@ -245,7 +225,7 @@ function OrderExercise({
   const [chosen, setChosen] = useState<{ word: string; id: number }[]>([]);
 
   useEffect(() => {
-    setPool(shuffle(exercise.words.map((word, id) => ({ word, id }))));
+    setPool(shuffleWords(exercise.words.map((word, id) => ({ word, id }))));
     setChosen([]);
   }, [exercise]);
 
@@ -259,7 +239,7 @@ function OrderExercise({
     setChosen((c) => c.filter((x) => x.id !== item.id));
     setPool((p) => [...p, item]);
   };
-  const check = () => onResult(normalize(chosen.map((c) => c.word).join(" ")) === normalize(exercise.words.join(" ")));
+  const check = () => onResult(normalizeAnswer(chosen.map((c) => c.word).join(" ")) === normalizeAnswer(exercise.words.join(" ")));
 
   return (
     <div>

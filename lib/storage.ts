@@ -32,6 +32,12 @@ export interface LessonResult {
   day: string;
 }
 
+export interface ExamResult {
+  percent: number;
+  passed: boolean;
+  day: string;
+}
+
 export interface WritingEntry {
   id: string;
   day: string;
@@ -55,6 +61,7 @@ export interface AppState {
   lessons: Record<string, LessonResult>;
   addedDecks: number[];
   writing: WritingEntry[];
+  exams: Record<number, ExamResult>; // beste Abschlussprüfung je Stufe
 }
 
 const KEY = "english-garden-v1";
@@ -68,6 +75,7 @@ export function defaultState(): AppState {
     lessons: {},
     addedDecks: [],
     writing: [],
+    exams: {},
   };
 }
 
@@ -84,6 +92,7 @@ function migrate(raw: unknown): AppState {
     lessons: r.lessons ?? {},
     addedDecks: Array.isArray(r.addedDecks) ? r.addedDecks : [],
     writing: Array.isArray(r.writing) ? r.writing : [],
+    exams: r.exams && typeof r.exams === "object" ? r.exams : {},
     version: 1,
   };
 }
@@ -216,5 +225,13 @@ export function saveLessonResult(slug: string, correct: number, total: number) {
     const prev = s.lessons[slug];
     const best = prev && prev.correct > correct ? prev : { correct, total, day: today() };
     return { ...s, lessons: { ...s.lessons, [slug]: { ...best, day: today() } } };
+  });
+}
+
+export function saveExamResult(level: number, percent: number, passed: boolean) {
+  updateState((s) => {
+    const prev = s.exams[level];
+    if (prev && prev.percent >= percent) return s;
+    return { ...s, exams: { ...s.exams, [level]: { percent, passed: passed || Boolean(prev?.passed), day: today() } } };
   });
 }

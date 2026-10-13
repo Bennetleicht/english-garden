@@ -1,0 +1,747 @@
+import type { Lesson } from "../types";
+
+/* ------------------------------------------------------------------ Stufe 1: Grundlagen & Alltag (A1/A2) */
+
+export const LEVEL1_LESSONS: Lesson[] = [
+  /* ---------------------------------------------------------------- 1. Simple Present */
+  {
+    slug: "simple-present",
+    level: 1,
+    title: "Simple Present",
+    subtitle: "Gewohnheiten, Fakten und der Alltag",
+    blocks: [
+      {
+        kind: "text",
+        text: "Das **Simple Present** ist die einfache Gegenwart. Du benutzt es für alles, was **regelmäßig** passiert oder **immer gilt**: deine Gewohnheiten, deinen Tagesablauf, Hobbys, Fakten und feste Zeiten (Fahrpläne, Öffnungszeiten). Im Deutschen sagst du „Ich trinke morgens Tee“ – im Englischen genauso einfach: **I drink tea in the morning.** Die einzige echte Hürde ist das kleine **-s** bei he, she und it.",
+      },
+      {
+        kind: "rule",
+        title: "Bejahte Sätze: Grundform – nur bei he/she/it ein -s",
+        text: "Bei **I, you, we, they** steht die Grundform des Verbs: **I work, they live**. Bei **he, she, it** (also auch bei **my husband, the shop, Anna**) hängst du ein **-s** an: **she works, the shop opens**. Eselsbrücke: **„He, she, it – das -s muss mit.“**",
+      },
+      {
+        kind: "rule",
+        title: "Rechtschreibung: -es und -ies",
+        text: "Endet das Verb auf **-s, -sh, -ch, -x** oder **-o**, wird es **-es**: **she watches, he washes, it goes, she does**. Endet es auf **Konsonant + y**, wird daraus **-ies**: **fly → flies, carry → carries**. Aber: **play → plays** (Vokal vor dem y). Ganz unregelmäßig ist nur **have → has**.",
+      },
+      {
+        kind: "rule",
+        title: "Verneinung mit don't / doesn't",
+        text: "Du kannst ein normales Verb nicht einfach mit „not“ verneinen. Du brauchst **don't** (do not) bzw. bei he/she/it **doesn't** (does not) – und danach die **Grundform ohne -s**: **I don't eat meat. She doesn't like coffee.** Das -s „wandert“ sozusagen ins doesn't.",
+      },
+      {
+        kind: "rule",
+        title: "Fragen mit do / does",
+        text: "Fragen bildest du mit **Do** bzw. **Does** am Anfang: **Do you live here? Does your son play tennis?** Auch hier steht danach die Grundform: **Does she work?** (nicht: Does she works?). Kurze Antworten: **Yes, I do. / No, she doesn't.**",
+      },
+      {
+        kind: "rule",
+        title: "Wohin mit always, often, never?",
+        text: "Häufigkeitswörter stehen **vor dem Hauptverb**: **I often go to the market. She never drinks coffee.** Beim Verb **be** stehen sie **dahinter**: **He is always late.** Im Deutschen ist die Stellung freier – im Englischen nicht.",
+      },
+      {
+        kind: "table",
+        title: "Das Verb „work“ im Simple Present",
+        headers: ["Person", "Bejaht", "Verneint", "Frage"],
+        rows: [
+          ["I", "I work", "I don't work", "Do I work?"],
+          ["you", "you work", "you don't work", "Do you work?"],
+          ["he / she / it", "she works", "she doesn't work", "Does she work?"],
+          ["we", "we work", "we don't work", "Do we work?"],
+          ["they", "they work", "they don't work", "Do they work?"],
+        ],
+      },
+      {
+        kind: "examples",
+        title: "Beispiele aus dem Alltag",
+        items: [
+          { en: "I drink a cup of tea every morning.", de: "Ich trinke jeden Morgen eine Tasse Tee." },
+          { en: "My husband reads the newspaper after breakfast.", de: "Mein Mann liest nach dem Frühstück die Zeitung." },
+          { en: "We don't eat meat.", de: "Wir essen kein Fleisch." },
+          { en: "Does your daughter live nearby?", de: "Wohnt deine Tochter in der Nähe?" },
+          { en: "The roses in my garden flower in June.", de: "Die Rosen in meinem Garten blühen im Juni." },
+          { en: "My grandson goes to school by bus.", de: "Mein Enkel fährt mit dem Bus zur Schule." },
+          { en: "The supermarket doesn't open on Sundays.", de: "Der Supermarkt hat sonntags nicht geöffnet." },
+        ],
+      },
+      {
+        kind: "mistakes",
+        items: [
+          { wrong: "She work in a bank.", right: "She works in a bank.", note: "Bei he/she/it nicht das -s vergessen." },
+          { wrong: "He doesn't likes fish.", right: "He doesn't like fish.", note: "Nach doesn't steht die Grundform – das -s steckt schon im doesn't." },
+          { wrong: "Do she live in London?", right: "Does she live in London?", note: "Bei he/she/it fragst du mit does." },
+          { wrong: "I not like cold weather.", right: "I don't like cold weather.", note: "Normale Verben verneinst du mit don't, nicht nur mit not." },
+          { wrong: "I go often to the cinema.", right: "I often go to the cinema.", note: "Häufigkeitswörter stehen vor dem Hauptverb, nicht dahinter wie im Deutschen." },
+        ],
+      },
+      {
+        kind: "tip",
+        text: "Signalwörter für das Simple Present: **always** (immer), **usually** (normalerweise), **often** (oft), **sometimes** (manchmal), **never** (nie), **every day / every week**, **on Mondays** (montags), **once a week** (einmal pro Woche). Wenn du eines davon im Satz siehst, ist das Simple Present fast immer richtig.",
+      },
+      {
+        kind: "summary",
+        points: [
+          "Simple Present = Gewohnheiten, Routinen, Fakten.",
+          "he/she/it → Verb + -s (works, goes, watches, flies).",
+          "Verneinung: don't / doesn't + Grundform.",
+          "Fragen: Do / Does + Subjekt + Grundform.",
+          "always, often, never … stehen vor dem Hauptverb.",
+        ],
+      },
+    ],
+    exercises: [
+      { type: "gap", sentence: "My sister ___ (live) in Manchester.", answers: ["lives"], explanation: "my sister = she → Verb + -s: lives." },
+      { type: "gap", sentence: "We ___ (not / eat) meat.", answers: ["don't eat", "do not eat"], explanation: "Bei we verneinst du mit don't + Grundform." },
+      { type: "choice", sentence: "___ your husband play golf?", options: ["Do", "Does", "Is", "Has"], answer: 1, explanation: "your husband = he → Frage mit Does." },
+      { type: "gap", sentence: "She ___ (watch) the news every evening.", answers: ["watches"], explanation: "Verben auf -ch bekommen bei he/she/it -es: watches." },
+      { type: "choice", sentence: "My grandson ___ to school by bus.", options: ["go", "goes", "going", "is go"], answer: 1, explanation: "my grandson = he → goes (go + -es)." },
+      { type: "gap", sentence: "Peter ___ (not / like) cold weather.", answers: ["doesn't like", "does not like"], explanation: "Peter = he → doesn't + Grundform (like, nicht likes)." },
+      { type: "gap", sentence: "The bakery ___ (open) at seven o'clock every morning.", answers: ["opens"], explanation: "the bakery = it → opens. Feste Öffnungszeiten stehen im Simple Present." },
+      { type: "choice", sentence: "Does your daughter ___ in London?", options: ["works", "work", "working", "worked"], answer: 1, explanation: "Nach Does steht immer die Grundform: work." },
+      { type: "gap", sentence: "My husband ___ (fly) to Dublin for work once a month.", answers: ["flies"], explanation: "Konsonant + y → -ies: fly → flies." },
+      {
+        type: "choice",
+        sentence: "Welcher Satz ist richtig?",
+        options: ["She doesn't works on Fridays.", "She don't work on Fridays.", "She doesn't work on Fridays.", "She not works on Fridays."],
+        answer: 2,
+        explanation: "she → doesn't, und danach die Grundform work ohne -s.",
+      },
+      {
+        type: "order",
+        words: ["We", "often", "have", "breakfast", "in", "the", "garden"],
+        translation: "Wir frühstücken oft im Garten.",
+        explanation: "Das Häufigkeitswort often steht vor dem Hauptverb have.",
+      },
+      {
+        type: "order",
+        words: ["My", "mother", "never", "drinks", "coffee", "after", "lunch"],
+        translation: "Meine Mutter trinkt nach dem Mittagessen nie Kaffee.",
+        explanation: "never steht vor dem Verb; my mother = she → drinks mit -s.",
+      },
+    ],
+  },
+
+  /* ---------------------------------------------------------------- 2. Present Progressive */
+  {
+    slug: "present-progressive",
+    level: 1,
+    title: "Present Progressive",
+    subtitle: "Was gerade jetzt passiert",
+    blocks: [
+      {
+        kind: "text",
+        text: "Im Deutschen sagen wir „Ich koche **gerade**“ oder „Ich bin **am** Kochen“. Im Englischen gibt es dafür eine eigene Zeitform: das **Present Progressive** (auch **Present Continuous** genannt). Du benutzt es für Dinge, die **genau jetzt** passieren oder nur **vorübergehend** gelten – zum Beispiel in dieser Woche oder in diesem Urlaub.",
+      },
+      {
+        kind: "rule",
+        title: "So wird es gebildet: am / is / are + -ing",
+        text: "Du brauchst immer zwei Teile: die passende Form von **be** (**am, is, are**) und das Verb mit **-ing**: **I am reading. She is cooking. They are sleeping.** Im Gespräch fast immer verkürzt: **I'm, you're, he's, she's, we're, they're**.",
+      },
+      {
+        kind: "rule",
+        title: "Rechtschreibung der -ing-Form",
+        text: "Meistens einfach **-ing** anhängen: **read → reading**. Ein stummes **-e** fällt weg: **make → making, write → writing**. Bei kurzen Verben mit **einem Vokal + einem Konsonanten** am Ende wird der Konsonant verdoppelt: **sit → sitting, swim → swimming, stop → stopping**. Aus **-ie** wird **-y**: **lie → lying**.",
+      },
+      {
+        kind: "rule",
+        title: "Verneinung und Fragen",
+        text: "Verneinen: **not** hinter am/is/are: **I'm not working. She isn't sleeping. They aren't listening.** Fragen: am/is/are nach vorne: **Are you watching this? What is he doing?** Ein **do** brauchst du hier **nicht**.",
+      },
+      {
+        kind: "rule",
+        title: "Simple Present oder Progressive?",
+        text: "**Regelmäßig / immer** → Simple Present: **I work in a bank.** **Gerade jetzt / vorübergehend** → Progressive: **I'm working from home this week.** Ein Satz kann beides enthalten: **She usually drives, but today she's taking the bus.**",
+      },
+      {
+        kind: "rule",
+        title: "Zustandsverben: keine -ing-Form",
+        text: "Verben, die einen **Zustand** beschreiben (Gefühle, Wissen, Besitz), stehen fast nie im Progressive – auch wenn sie „gerade jetzt“ gelten: **like, love, hate, want, need, know, understand, believe, remember, own**. Also: **I know** (nicht: I'm knowing), **I want a cup of tea** (nicht: I'm wanting).",
+      },
+      {
+        kind: "table",
+        title: "Das Verb „cook“ im Present Progressive",
+        headers: ["Person", "Bejaht", "Verneint", "Frage"],
+        rows: [
+          ["I", "I'm cooking", "I'm not cooking", "Am I cooking?"],
+          ["you", "you're cooking", "you aren't cooking", "Are you cooking?"],
+          ["he / she / it", "she's cooking", "she isn't cooking", "Is she cooking?"],
+          ["we", "we're cooking", "we aren't cooking", "Are we cooking?"],
+          ["they", "they're cooking", "they aren't cooking", "Are they cooking?"],
+        ],
+      },
+      {
+        kind: "examples",
+        title: "Beispiele aus dem Alltag",
+        items: [
+          { en: "Listen! The birds are singing.", de: "Hör mal! Die Vögel singen." },
+          { en: "I'm cooking dinner at the moment.", de: "Ich koche gerade Abendessen." },
+          { en: "My husband is planting tomatoes in the garden.", de: "Mein Mann pflanzt gerade Tomaten im Garten." },
+          { en: "We're staying with friends in Bristol this week.", de: "Wir wohnen diese Woche bei Freunden in Bristol." },
+          { en: "Are you waiting for the bus too?", de: "Wartest du auch auf den Bus?" },
+          { en: "She usually drives, but today she's taking the bus.", de: "Normalerweise fährt sie Auto, aber heute nimmt sie den Bus." },
+          { en: "Sorry, I can't talk now – I'm driving.", de: "Entschuldige, ich kann jetzt nicht reden – ich fahre gerade Auto." },
+        ],
+      },
+      {
+        kind: "mistakes",
+        items: [
+          { wrong: "I cooking dinner.", right: "I'm cooking dinner.", note: "Ohne am/is/are geht es nicht – die -ing-Form allein ist kein vollständiges Verb." },
+          { wrong: "Look! It rains.", right: "Look! It's raining.", note: "Es passiert genau jetzt → Progressive." },
+          { wrong: "I'm knowing the answer.", right: "I know the answer.", note: "know ist ein Zustandsverb und steht nicht in der -ing-Form." },
+          { wrong: "Do you watching TV?", right: "Are you watching TV?", note: "Im Progressive fragst du mit am/is/are, nicht mit do." },
+          { wrong: "She is siting in the garden.", right: "She is sitting in the garden.", note: "Kurzes Verb mit Vokal + Konsonant → Konsonant verdoppeln: sitting." },
+        ],
+      },
+      {
+        kind: "tip",
+        text: "Signalwörter: **now** (jetzt), **right now** (genau jetzt), **at the moment** (im Moment), **today, this week** (heute, diese Woche), **Look!** und **Listen!**. Eselsbrücke: Wenn du auf Deutsch „**gerade**“ einfügen kannst, passt meistens das Progressive.",
+      },
+      {
+        kind: "summary",
+        points: [
+          "Present Progressive = jetzt gerade oder vorübergehend.",
+          "Form: am / is / are + Verb mit -ing.",
+          "Fragen und Verneinung ohne do: Are you …? / She isn't …",
+          "Gewohnheiten bleiben im Simple Present.",
+          "Zustandsverben (know, like, want …) nicht mit -ing.",
+        ],
+      },
+    ],
+    exercises: [
+      { type: "gap", sentence: "Be quiet, please. The baby ___ (sleep).", answers: ["is sleeping", "'s sleeping"], explanation: "Es passiert gerade jetzt → is + sleeping." },
+      { type: "gap", sentence: "I ___ (cook) dinner at the moment.", answers: ["am cooking", "'m cooking"], explanation: "at the moment → Progressive: I am cooking." },
+      { type: "choice", sentence: "Look! It ___.", options: ["rains", "is raining", "raining", "rain"], answer: 1, explanation: "Look! zeigt: genau jetzt → is raining." },
+      {
+        type: "gap",
+        sentence: "They ___ (not / watch) TV right now. They're in the garden.",
+        answers: ["aren't watching", "are not watching", "'re not watching"],
+        explanation: "Verneinung im Progressive: aren't + -ing.",
+      },
+      { type: "choice", sentence: "I ___ coffee every morning.", options: ["am drinking", "drink", "drinking", "drinks"], answer: 1, explanation: "every morning = Gewohnheit → Simple Present: I drink." },
+      { type: "gap", sentence: "We ___ (sit) in a lovely café near the harbour.", answers: ["are sitting", "'re sitting"], explanation: "sit → sitting (t wird verdoppelt); we → are." },
+      { type: "choice", sentence: "Where is Tom? – He ___ in the garden.", options: ["works", "work", "is working", "working"], answer: 2, explanation: "Es geht darum, was er gerade tut → is working." },
+      { type: "gap", sentence: "I ___ (know) your brother quite well.", answers: ["know"], explanation: "know ist ein Zustandsverb → kein -ing, sondern Simple Present." },
+      { type: "choice", sentence: "___ you enjoying your holiday?", options: ["Do", "Are", "Is", "Does"], answer: 1, explanation: "Frage im Progressive mit Are + you + -ing." },
+      {
+        type: "gap",
+        sentence: "She usually drives to work, but today she ___ (take) the bus.",
+        answers: ["is taking", "'s taking"],
+        explanation: "today = nur heute, vorübergehend → is taking (das -e von take fällt weg).",
+      },
+      {
+        type: "order",
+        words: ["My", "daughter", "is", "learning", "Spanish", "this", "year"],
+        translation: "Meine Tochter lernt dieses Jahr Spanisch.",
+        explanation: "Vorübergehende Situation (this year) → is + learning.",
+      },
+      {
+        type: "order",
+        words: ["What", "are", "you", "reading", "at", "the", "moment"],
+        translation: "Was liest du gerade?",
+        explanation: "Fragewort + are + you + -ing-Form.",
+      },
+    ],
+  },
+
+  /* ---------------------------------------------------------------- 3. Simple Past */
+  {
+    slug: "past-simple",
+    level: 1,
+    title: "Simple Past",
+    subtitle: "Abgeschlossenes in der Vergangenheit",
+    blocks: [
+      {
+        kind: "text",
+        text: "Mit dem **Simple Past** erzählst du, was zu einem bestimmten Zeitpunkt in der Vergangenheit passiert und **abgeschlossen** ist – gestern, letzte Woche, im letzten Urlaub, als du jung warst. Wichtig für Deutschsprachige: Wo wir im Gespräch meist das Perfekt benutzen („Ich **habe** gestern Kuchen **gebacken**“), steht im Englischen das Simple Past: **I baked a cake yesterday.**",
+      },
+      {
+        kind: "rule",
+        title: "Regelmäßige Verben: -ed",
+        text: "Hänge einfach **-ed** an: **work → worked, visit → visited, watch → watched**. Endet das Verb auf **-e**, nur **-d**: **live → lived**. Konsonant + y wird **-ied**: **study → studied, carry → carried**. Kurze Verben mit Vokal + Konsonant verdoppeln: **stop → stopped, plan → planned**. Die Form ist für **alle Personen gleich** – kein -s bei he/she/it!",
+      },
+      {
+        kind: "rule",
+        title: "Unregelmäßige Verben",
+        text: "Viele häufige Verben haben eine eigene Form, die du lernen musst: **go → went, see → saw, have → had, buy → bought, eat → ate, take → took, meet → met, make → made, get → got, come → came, give → gave, find → found, catch → caught**. Tipp: Lerne jeden Tag drei davon mit einem eigenen Beispielsatz.",
+      },
+      {
+        kind: "rule",
+        title: "Sonderfall „be“: was / were",
+        text: "Das Verb **be** hat zwei Formen: **I / he / she / it was** und **you / we / they were**. Verneint: **wasn't / weren't**. Fragen: **Was it nice? Were you tired?** Bei be brauchst du **kein did**.",
+      },
+      {
+        kind: "rule",
+        title: "Verneinung und Fragen mit didn't / did",
+        text: "Für alle anderen Verben gilt: **didn't** (did not) bzw. **Did** – und danach wieder die **Grundform**: **I didn't go. Did you see it?** Die Vergangenheit steckt schon im did, deshalb nicht: Did you saw / I didn't went.",
+      },
+      {
+        kind: "table",
+        title: "Simple Past im Überblick",
+        headers: ["", "Bejaht", "Verneint", "Frage"],
+        rows: [
+          ["regelmäßig (visit)", "We visited Rome.", "We didn't visit Rome.", "Did you visit Rome?"],
+          ["unregelmäßig (go)", "She went home.", "She didn't go home.", "Did she go home?"],
+          ["be (I/he/she/it)", "It was lovely.", "It wasn't lovely.", "Was it lovely?"],
+          ["be (you/we/they)", "They were tired.", "They weren't tired.", "Were they tired?"],
+        ],
+      },
+      {
+        kind: "examples",
+        title: "Beispiele aus dem Alltag",
+        items: [
+          { en: "We visited my aunt in Hamburg yesterday.", de: "Wir haben gestern meine Tante in Hamburg besucht." },
+          { en: "I went to the market last Saturday and bought fresh strawberries.", de: "Ich war letzten Samstag auf dem Markt und habe frische Erdbeeren gekauft." },
+          { en: "The weather was wonderful on our holiday.", de: "Das Wetter war in unserem Urlaub wunderbar." },
+          { en: "My grandchildren stayed with us for a week in August.", de: "Meine Enkelkinder waren im August eine Woche bei uns." },
+          { en: "Did you enjoy the concert?", de: "Hat dir das Konzert gefallen?" },
+          { en: "We didn't take the car – we walked.", de: "Wir haben nicht das Auto genommen – wir sind zu Fuß gegangen." },
+          { en: "When I was young, I lived near the sea.", de: "Als ich jung war, habe ich in der Nähe des Meeres gewohnt." },
+        ],
+      },
+      {
+        kind: "mistakes",
+        items: [
+          { wrong: "I have seen him yesterday.", right: "I saw him yesterday.", note: "Mit yesterday, last week, ago usw. steht im Englischen das Simple Past, nicht „have + 3. Form“." },
+          { wrong: "Did you saw the film?", right: "Did you see the film?", note: "Nach did steht die Grundform." },
+          { wrong: "We didn't went out.", right: "We didn't go out.", note: "Die Vergangenheit steckt schon in didn't – danach Grundform." },
+          { wrong: "I goed to the shop.", right: "I went to the shop.", note: "go ist unregelmäßig: went." },
+          { wrong: "We was very happy.", right: "We were very happy.", note: "Bei we, you, they heißt es were." },
+          { wrong: "She stoped the car.", right: "She stopped the car.", note: "Kurzes Verb mit Vokal + Konsonant → Konsonant verdoppeln." },
+        ],
+      },
+      {
+        kind: "tip",
+        text: "Signalwörter: **yesterday** (gestern), **last week / last year** (letzte Woche / letztes Jahr), **two days ago** (vor zwei Tagen), **in 2010**, **when I was young** (als ich jung war). Achtung: „vor“ heißt hier **ago** und steht **hinter** der Zeitangabe: **three years ago** = vor drei Jahren.",
+      },
+      {
+        kind: "summary",
+        points: [
+          "Simple Past = abgeschlossene Handlung zu einem Zeitpunkt in der Vergangenheit.",
+          "Regelmäßig: -ed; unregelmäßige Formen (went, saw, bought …) lernen.",
+          "be: I/he/she/it was – you/we/they were.",
+          "Verneinung und Frage: didn't / Did + Grundform.",
+          "Deutsches Perfekt im Gespräch → meist englisches Simple Past.",
+        ],
+      },
+    ],
+    exercises: [
+      { type: "gap", sentence: "We ___ (visit) Scotland two years ago.", answers: ["visited"], explanation: "Regelmäßiges Verb: visit + -ed. Signalwort: ago." },
+      { type: "gap", sentence: "I ___ (go) to the cinema yesterday.", answers: ["went"], explanation: "go ist unregelmäßig: went." },
+      { type: "choice", sentence: "Did you ___ the email from the hotel?", options: ["saw", "see", "seen", "seeing"], answer: 1, explanation: "Nach Did steht immer die Grundform: see." },
+      { type: "gap", sentence: "She ___ (not / buy) the dress because it was too expensive.", answers: ["didn't buy", "did not buy"], explanation: "Verneinung: didn't + Grundform buy." },
+      { type: "gap", sentence: "The train ___ (stop) in the middle of nowhere.", answers: ["stopped"], explanation: "stop → stopped: Vokal + Konsonant am Ende, deshalb wird das p verdoppelt." },
+      { type: "choice", sentence: "Last summer we ___ a lovely cottage in Cornwall.", options: ["rent", "rented", "have rented", "renting"], answer: 1, explanation: "last summer = abgeschlossener Zeitpunkt → Simple Past: rented." },
+      { type: "gap", sentence: "My husband ___ (make) a wonderful apple pie last Sunday.", answers: ["made"], explanation: "make ist unregelmäßig: made." },
+      { type: "choice", sentence: "Where ___ you go on holiday last year?", options: ["did", "do", "were", "went"], answer: 0, explanation: "Frage in der Vergangenheit mit normalem Verb (go) → did." },
+      { type: "gap", sentence: "I ___ (be) very tired after the long flight.", answers: ["was"], explanation: "be bei I in der Vergangenheit: was." },
+      {
+        type: "choice",
+        sentence: "Welcher Satz ist richtig?",
+        options: ["We didn't went to the party.", "We didn't go to the party.", "We not went to the party.", "We don't went to the party."],
+        answer: 1,
+        explanation: "didn't + Grundform (go). Die Vergangenheit steckt schon im didn't.",
+      },
+      {
+        type: "order",
+        words: ["We", "met", "our", "friends", "at", "the", "station", "last", "night"],
+        translation: "Wir haben gestern Abend unsere Freunde am Bahnhof getroffen.",
+        explanation: "meet → met; die Zeitangabe last night steht am Satzende.",
+      },
+      {
+        type: "order",
+        words: ["Did", "you", "enjoy", "the", "concert", "on", "Saturday"],
+        translation: "Hat dir das Konzert am Samstag gefallen?",
+        explanation: "Did + Subjekt + Grundform (enjoy).",
+      },
+    ],
+  },
+
+  /* ---------------------------------------------------------------- 4. in, on, at */
+  {
+    slug: "prepositions-time",
+    level: 1,
+    title: "in, on, at",
+    subtitle: "Präpositionen der Zeit",
+    blocks: [
+      {
+        kind: "text",
+        text: "Für Zeitangaben benutzt das Englische drei kleine Wörter: **in, on** und **at**. Im Deutschen sagen wir „im Mai“, „am Montag“, „um acht Uhr“ – das passt nicht immer eins zu eins, aber es gibt eine einfache Logik: von **groß (in)** über **mittel (on)** bis **genau (at)**.",
+      },
+      {
+        kind: "rule",
+        title: "in – längere Zeiträume",
+        text: "Für **Monate, Jahre, Jahreszeiten, Jahrzehnte** und **Tageszeiten**: **in May, in 1985, in (the) summer, in the 1970s, in the morning, in the afternoon, in the evening**.",
+      },
+      {
+        kind: "rule",
+        title: "on – Tage und Daten",
+        text: "Für **Wochentage, Daten** und **besondere Tage**: **on Monday, on 3rd May, on my birthday, on Christmas Day**. Auch wenn eine Tageszeit an einem bestimmten Tag hängt: **on Sunday morning, on Friday evening**.",
+      },
+      {
+        kind: "rule",
+        title: "at – genaue Zeitpunkte",
+        text: "Für **Uhrzeiten** und einige feste Ausdrücke: **at 8 o'clock, at half past six, at noon, at midnight, at night, at Christmas, at Easter, at the weekend** (britisch; amerikanisch: on the weekend).",
+      },
+      {
+        kind: "rule",
+        title: "Gar keine Präposition",
+        text: "Vor **this, next, last, every** steht **keine** Präposition: **I'll call you next Monday. We met last summer. I swim every morning.** Ebenso bei **today, tomorrow, yesterday**.",
+      },
+      {
+        kind: "table",
+        title: "in – on – at auf einen Blick",
+        headers: ["Präposition", "Wofür?", "Beispiele"],
+        rows: [
+          ["in", "Monate, Jahre, Jahreszeiten, Tageszeiten", "in June, in 2019, in winter, in the evening"],
+          ["on", "Wochentage, Daten, besondere Tage", "on Friday, on 5th May, on my birthday"],
+          ["at", "Uhrzeiten, feste Ausdrücke", "at 7 o'clock, at night, at Christmas, at the weekend"],
+          ["–", "this, next, last, every, today …", "next week, last year, every day, tomorrow"],
+        ],
+      },
+      {
+        kind: "examples",
+        title: "Beispiele aus dem Alltag",
+        items: [
+          { en: "My granddaughter was born in 2019.", de: "Meine Enkelin wurde 2019 geboren." },
+          { en: "We always go to the coast in August.", de: "Im August fahren wir immer an die Küste." },
+          { en: "The garden centre opens at nine o'clock.", de: "Das Gartencenter öffnet um neun Uhr." },
+          { en: "I've got a doctor's appointment on Tuesday morning.", de: "Ich habe am Dienstagmorgen einen Arzttermin." },
+          { en: "We often have a barbecue at the weekend.", de: "Am Wochenende grillen wir oft." },
+          { en: "The whole family comes together at Christmas.", de: "An Weihnachten kommt die ganze Familie zusammen." },
+          { en: "See you next week!", de: "Bis nächste Woche!" },
+        ],
+      },
+      {
+        kind: "mistakes",
+        items: [
+          { wrong: "I'll see you on next Monday.", right: "I'll see you next Monday.", note: "Vor next, last, this und every steht keine Präposition." },
+          { wrong: "We met in Monday.", right: "We met on Monday.", note: "Wochentage immer mit on." },
+          { wrong: "The film starts on 8 o'clock.", right: "The film starts at 8 o'clock.", note: "Uhrzeiten immer mit at – „um“ = at." },
+          { wrong: "I was born at 1960.", right: "I was born in 1960.", note: "Jahreszahlen immer mit in. Im Deutschen sagt man oft nur „1960“ – im Englischen braucht die Jahreszahl ein in." },
+          { wrong: "I read in the night.", right: "I read at night.", note: "Fester Ausdruck: at night – aber in the morning / afternoon / evening." },
+        ],
+      },
+      {
+        kind: "tip",
+        text: "Eselsbrücke mit einer Pyramide: Unten, ganz breit, steht **in** (Jahre, Monate). In der Mitte **on** (einzelne Tage). Ganz oben, an der Spitze, **at** (der genaue Zeitpunkt). Je genauer die Zeitangabe, desto weiter oben bist du.",
+      },
+      {
+        kind: "summary",
+        points: [
+          "in = lange Zeiträume: Monate, Jahre, Jahreszeiten, in the morning.",
+          "on = Tage: Wochentage, Daten, on my birthday.",
+          "at = genaue Zeit: Uhrzeiten, at night, at Christmas, at the weekend.",
+          "Keine Präposition vor this, next, last, every.",
+        ],
+      },
+    ],
+    exercises: [
+      { type: "gap", sentence: "My birthday is ___ June.", answers: ["in"], explanation: "Monate → in." },
+      { type: "gap", sentence: "The shop closes ___ 6 o'clock.", answers: ["at"], explanation: "Uhrzeit → at." },
+      { type: "gap", sentence: "We always have a big family lunch ___ Sundays.", answers: ["on"], explanation: "Wochentage → on." },
+      { type: "choice", sentence: "I like to read ___ the evening.", options: ["in", "on", "at", "by"], answer: 0, explanation: "Tageszeit → in the evening (aber: at night)." },
+      { type: "gap", sentence: "My granddaughter was born ___ 2019.", answers: ["in"], explanation: "Jahre → in." },
+      {
+        type: "choice",
+        sentence: "I'll see you ___ next week.",
+        options: ["in", "on", "at", "(keine Präposition)"],
+        answer: 3,
+        explanation: "Vor next steht keine Präposition: I'll see you next week.",
+      },
+      { type: "gap", sentence: "The owls in our garden are very noisy ___ night.", answers: ["at"], explanation: "Fester Ausdruck: at night (nachts)." },
+      { type: "choice", sentence: "Our neighbours are having a party ___ Saturday evening.", options: ["in", "on", "at", "(keine Präposition)"], answer: 1, explanation: "Tageszeit an einem bestimmten Tag → on Saturday evening." },
+      { type: "gap", sentence: "We usually go skiing ___ February.", answers: ["in"], explanation: "Monate → in February." },
+      {
+        type: "choice",
+        sentence: "The museum is closed ___ Christmas Day.",
+        options: ["in", "on", "at", "(keine Präposition)"],
+        answer: 1,
+        explanation: "Ein bestimmter Tag → on Christmas Day. Aber: at Christmas (die Weihnachtszeit allgemein).",
+      },
+      {
+        type: "order",
+        words: ["My", "appointment", "is", "on", "Tuesday", "at", "half", "past", "ten"],
+        translation: "Mein Termin ist am Dienstag um halb elf.",
+        explanation: "on + Wochentag, at + Uhrzeit. Achtung: half past ten = halb elf.",
+      },
+      {
+        type: "order",
+        words: ["I", "get", "up", "at", "seven", "every", "morning"],
+        translation: "Ich stehe jeden Morgen um sieben auf.",
+        explanation: "at + Uhrzeit; vor every steht keine Präposition.",
+      },
+    ],
+  },
+
+  /* ---------------------------------------------------------------- 5. Fragen */
+  {
+    slug: "questions",
+    level: 1,
+    title: "Fragen stellen",
+    subtitle: "Mit do, does, did und Fragewörtern",
+    blocks: [
+      {
+        kind: "text",
+        text: "Im Deutschen stellen wir für eine Frage einfach das Verb nach vorne: „**Magst** du Tee?“, „Wo **wohnst** du?“. Im Englischen geht das nur bei wenigen Verben. Meistens brauchst du ein **Hilfsverb** – **do, does** oder **did** –, das die Frage „trägt“. Wenn du dieses Muster einmal verinnerlicht hast, kannst du fast jede Frage richtig bilden.",
+      },
+      {
+        kind: "rule",
+        title: "Die Satzstellung",
+        text: "**(Fragewort) + Hilfsverb + Subjekt + Verb (Grundform)**: **Where do you live? What did she say? How often does he call?** Eselsbrücke: **„A-S-V“ – Auxiliary (Hilfsverb), Subject, Verb.**",
+      },
+      {
+        kind: "rule",
+        title: "do, does oder did?",
+        text: "**do** für I, you, we, they in der Gegenwart. **does** für he, she, it in der Gegenwart. **did** für alle Personen in der Vergangenheit. Nach does und did steht immer die **Grundform**: **Does she work? Did you sleep well?**",
+      },
+      {
+        kind: "rule",
+        title: "Ohne do: bei be, can und Co.",
+        text: "Mit **am / is / are, was / were, can, could, must, will** brauchst du kein do – du stellst nur um: **Are you tired? Can you help me? Was it nice? Where is the station?**",
+      },
+      {
+        kind: "rule",
+        title: "Fragen nach dem Subjekt: ohne do",
+        text: "Fragt **who** oder **what** nach dem Subjekt (also nach der Person oder Sache, die etwas tut), fällt das Hilfsverb weg: **Who called you?** (Wer hat dich angerufen?) – aber **Who did you call?** (Wen hast du angerufen?). **What happened?** (Was ist passiert?)",
+      },
+      {
+        kind: "table",
+        title: "Die wichtigsten Fragewörter",
+        headers: ["Englisch", "Deutsch", "Beispiel"],
+        rows: [
+          ["what", "was", "What do you do?"],
+          ["where", "wo / wohin", "Where did you go?"],
+          ["when", "wann", "When does the train leave?"],
+          ["why", "warum", "Why are you laughing?"],
+          ["who", "wer / wen", "Who is that woman?"],
+          ["how", "wie", "How was your holiday?"],
+          ["how much / how many", "wie viel / wie viele", "How many children do you have?"],
+          ["how often / how long", "wie oft / wie lange", "How long did you stay?"],
+        ],
+      },
+      {
+        kind: "examples",
+        title: "Beispiele aus dem Alltag",
+        items: [
+          { en: "What do you do?", de: "Was machst du beruflich?" },
+          { en: "Where do your children live?", de: "Wo wohnen deine Kinder?" },
+          { en: "How long did you stay in Cornwall?", de: "Wie lange bist du in Cornwall geblieben?" },
+          { en: "Where can I buy tickets?", de: "Wo kann ich Fahrkarten kaufen?" },
+          { en: "Who called you this morning?", de: "Wer hat dich heute Morgen angerufen?" },
+          { en: "How much is this scarf?", de: "Wie viel kostet dieser Schal?" },
+          { en: "Was the hotel nice?", de: "War das Hotel schön?" },
+        ],
+      },
+      {
+        kind: "mistakes",
+        items: [
+          { wrong: "Like you tea?", right: "Do you like tea?", note: "Normale Verben brauchen in der Frage do / does / did." },
+          { wrong: "Where you live?", right: "Where do you live?", note: "Auch nach einem Fragewort darf das Hilfsverb nicht fehlen." },
+          { wrong: "What time does the film starts?", right: "What time does the film start?", note: "Nach does steht die Grundform ohne -s." },
+          { wrong: "Do you are tired?", right: "Are you tired?", note: "Mit be kein do – nur umstellen." },
+          { wrong: "Who did call you?", right: "Who called you?", note: "Fragt who nach dem Subjekt, fällt did weg." },
+        ],
+      },
+      {
+        kind: "tip",
+        text: "Achtung bei **who** und **where**: **who** sieht aus wie „wo“, heißt aber „**wer**“. „Wo“ heißt **where**. Eselsbrücke: In **where** steckt **here** (hier) – es geht um einen Ort.",
+      },
+      {
+        kind: "summary",
+        points: [
+          "Satzbau: (Fragewort) + Hilfsverb + Subjekt + Grundform.",
+          "do (I/you/we/they), does (he/she/it), did (Vergangenheit).",
+          "Mit be, can, must, will: kein do, nur umstellen.",
+          "Who/What als Subjekt: kein Hilfsverb (Who called you?).",
+          "who = wer, where = wo.",
+        ],
+      },
+    ],
+    exercises: [
+      { type: "choice", sentence: "Where ___ you live?", options: ["are", "do", "does", "is"], answer: 1, explanation: "Frage mit dem Vollverb live und you → do." },
+      { type: "choice", sentence: "___ you tired?", options: ["Do", "Are", "Does", "Have"], answer: 1, explanation: "Mit be brauchst du kein do: Are you tired?" },
+      { type: "gap", sentence: "What ___ you have for breakfast yesterday?", answers: ["did"], explanation: "yesterday → Vergangenheit → did." },
+      { type: "gap", sentence: "How often ___ your son visit you?", answers: ["does"], explanation: "your son = he → does." },
+      { type: "gap", sentence: "___ is the bus stop? – It's next to the post office.", answers: ["Where"], explanation: "Die Antwort nennt einen Ort → where (wo)." },
+      { type: "gap", sentence: "How ___ does this jumper cost? – Thirty pounds.", answers: ["much"], explanation: "Nach dem Preis fragst du mit how much." },
+      {
+        type: "choice",
+        sentence: "___ phoned you last night? – My cousin from Leeds.",
+        options: ["Who did", "Who", "Who does", "What did"],
+        answer: 1,
+        explanation: "who fragt nach dem Subjekt (wer hat angerufen?) → kein did: Who phoned you?",
+      },
+      { type: "choice", sentence: "___ you help me with my suitcase, please?", options: ["Do", "Can", "Are", "Does"], answer: 1, explanation: "Bitte um Hilfe mit can: Can you help me …?" },
+      { type: "gap", sentence: "Where ___ you yesterday? I called you three times!", answers: ["were"], explanation: "be in der Vergangenheit bei you → were (kein did)." },
+      {
+        type: "choice",
+        sentence: "Welche Frage ist richtig?",
+        options: ["What time does the film start?", "What time does the film starts?", "What time the film starts?", "What time do the film start?"],
+        answer: 0,
+        explanation: "the film = it → does + Grundform start.",
+      },
+      {
+        type: "order",
+        words: ["When", "did", "you", "arrive", "in", "London"],
+        translation: "Wann bist du in London angekommen?",
+        explanation: "Fragewort + did + Subjekt + Grundform.",
+      },
+      {
+        type: "order",
+        words: ["How", "many", "grandchildren", "do", "you", "have"],
+        translation: "Wie viele Enkelkinder hast du?",
+        explanation: "How many + Nomen + do + you + Grundform.",
+      },
+    ],
+  },
+
+  /* ---------------------------------------------------------------- 6. Modalverben */
+  {
+    slug: "modal-verbs",
+    level: 1,
+    title: "can, must, have to",
+    subtitle: "Können, müssen und nicht müssen",
+    blocks: [
+      {
+        kind: "text",
+        text: "Mit **Modalverben** sagst du, was jemand **kann**, **muss** oder **nicht darf**. Sie funktionieren ähnlich wie im Deutschen („Ich **kann** schwimmen“), haben aber ein paar Besonderheiten – und eine der gemeinsten Fallen für Deutschsprachige überhaupt: **mustn't** heißt **nicht** „muss nicht“!",
+      },
+      {
+        kind: "rule",
+        title: "can / can't – können",
+        text: "**can** + Grundform drückt Fähigkeit oder Möglichkeit aus: **I can swim. You can park here.** Verneint: **can't** (cannot): **She can't drive.** Fragen ohne do: **Can you help me?** Wichtig: **can** bekommt **nie ein -s** (he can, nicht: he cans) und danach steht **kein „to“**.",
+      },
+      {
+        kind: "rule",
+        title: "could – konnte / könnten Sie …?",
+        text: "**could** ist die Vergangenheit von can: **When I was young, I could run very fast.** Verneint: **couldn't**. Außerdem ist **Could you …?** die höfliche Bitte: **Could you open the window, please?** (Könnten Sie / Könntest du …?) – höflicher als **Can you …?**",
+      },
+      {
+        kind: "rule",
+        title: "must und have to – müssen",
+        text: "Beide bedeuten „müssen“. **must** klingt oft nach einer **eigenen Überzeugung**: **I must call my sister.** (Ich finde, ich sollte das unbedingt tun.) **have to** klingt eher nach einer **Regel von außen**: **I have to wear a uniform at work.** Bei he/she/it: **has to**. Fragen und Verneinung mit do: **Do you have to work today?**",
+      },
+      {
+        kind: "rule",
+        title: "Die große Falle: mustn't ≠ „muss nicht“",
+        text: "**mustn't** (must not) heißt **„nicht dürfen“** – es ist ein **Verbot**: **You mustn't smoke here.** (Du darfst hier nicht rauchen.) „Nicht müssen“ (es ist nicht nötig) heißt **don't have to / doesn't have to**: **You don't have to come.** (Du musst nicht kommen – aber du darfst.)",
+      },
+      {
+        kind: "table",
+        title: "Die Modalverben im Überblick",
+        headers: ["Englisch", "Deutsch", "Beispiel"],
+        rows: [
+          ["can", "kann / darf", "I can speak a little Italian."],
+          ["can't", "kann nicht / darf nicht", "We can't come on Friday."],
+          ["could", "konnte / könnten (höflich)", "Could you help me, please?"],
+          ["must", "muss (finde ich)", "I must water the plants."],
+          ["have to / has to", "muss (Regel, Pflicht)", "She has to work on Saturdays."],
+          ["mustn't", "darf nicht (Verbot)", "You mustn't feed the animals."],
+          ["don't / doesn't have to", "muss nicht (nicht nötig)", "You don't have to pay – it's free."],
+        ],
+      },
+      {
+        kind: "examples",
+        title: "Beispiele aus dem Alltag",
+        items: [
+          { en: "My husband can cook very well.", de: "Mein Mann kann sehr gut kochen." },
+          { en: "I couldn't sleep last night – it was too hot.", de: "Ich konnte letzte Nacht nicht schlafen – es war zu heiß." },
+          { en: "Could you tell me the way to the station, please?", de: "Könnten Sie mir bitte den Weg zum Bahnhof sagen?" },
+          { en: "I must buy a present for my granddaughter.", de: "Ich muss ein Geschenk für meine Enkelin kaufen." },
+          { en: "My son has to get up at five every day.", de: "Mein Sohn muss jeden Tag um fünf aufstehen." },
+          { en: "You mustn't walk on the grass.", de: "Du darfst nicht auf den Rasen treten." },
+          { en: "We don't have to hurry – the train leaves at ten.", de: "Wir müssen uns nicht beeilen – der Zug fährt um zehn." },
+        ],
+      },
+      {
+        kind: "mistakes",
+        items: [
+          { wrong: "You mustn't come if you're tired.", right: "You don't have to come if you're tired.", note: "„Du musst nicht kommen“ = don't have to. mustn't wäre ein Verbot." },
+          { wrong: "She cans swim.", right: "She can swim.", note: "Modalverben bekommen bei he/she/it kein -s." },
+          { wrong: "I can to speak English.", right: "I can speak English.", note: "Nach can, could und must steht kein „to“." },
+          { wrong: "Do you can help me?", right: "Can you help me?", note: "Mit can fragst du ohne do – nur umstellen." },
+          { wrong: "He must to work tomorrow.", right: "He has to work tomorrow.", note: "Entweder must + Grundform oder has to + Grundform – nicht beides gemischt." },
+        ],
+      },
+      {
+        kind: "tip",
+        text: "Eselsbrücke für die Falle: **mustn't = „Stopp!“** – ein Verbotsschild. **don't have to = „Kein Muss“** – du hast die Wahl. Wenn du auf Deutsch „brauchst nicht“ sagen könntest, ist es **don't have to**. (Britisch hörst du dafür auch **needn't**: **You needn't worry.**)",
+      },
+      {
+        kind: "summary",
+        points: [
+          "can / can't = können / nicht können; could = konnte.",
+          "Could you …? = höfliche Bitte.",
+          "must und have to = müssen (have to bei Regeln von außen).",
+          "mustn't = darf nicht (Verbot)!",
+          "don't have to = muss nicht (nicht nötig).",
+        ],
+      },
+    ],
+    exercises: [
+      { type: "gap", sentence: "My husband ___ cook very well – his lasagne is famous!", answers: ["can"], explanation: "Fähigkeit → can + Grundform." },
+      {
+        type: "gap",
+        sentence: "Sorry, I ___ come to your party on Saturday. I'm working.",
+        answers: ["can't", "cannot", "can not"],
+        hint: "nicht können",
+        explanation: "Es ist nicht möglich → can't.",
+      },
+      { type: "choice", sentence: "When I was young, I ___ run very fast.", options: ["can", "could", "must", "have to"], answer: 1, explanation: "Fähigkeit in der Vergangenheit → could." },
+      {
+        type: "choice",
+        sentence: "You ___ smoke in the hospital. It's forbidden.",
+        options: ["mustn't", "don't have to", "can", "have to"],
+        answer: 0,
+        explanation: "forbidden = verboten → mustn't (darf nicht).",
+      },
+      {
+        type: "gap",
+        sentence: "Tomorrow is Sunday, so I ___ get up early. I can sleep longer.",
+        answers: ["don't have to", "do not have to", "needn't", "need not"],
+        hint: "nicht müssen",
+        explanation: "Es ist nicht nötig → don't have to (nicht mustn't!).",
+      },
+      { type: "choice", sentence: "___ you open the window, please?", options: ["Could", "Must", "Have", "Do"], answer: 0, explanation: "Höfliche Bitte → Could you …, please?" },
+      {
+        type: "gap",
+        sentence: "My son ___ wear a suit at work. It's a rule in his company.",
+        answers: ["has to", "must"],
+        hint: "müssen",
+        explanation: "Regel von außen → has to (he → has, nicht have).",
+      },
+      {
+        type: "choice",
+        sentence: "„Du musst nicht kommen.“ heißt auf Englisch:",
+        options: ["You mustn't come.", "You don't have to come.", "You haven't to come.", "You must not come."],
+        answer: 1,
+        explanation: "muss nicht = don't have to. mustn't / must not wäre ein Verbot.",
+      },
+      {
+        type: "gap",
+        sentence: "Last year my mother ___ walk without help, but now she can.",
+        answers: ["couldn't", "could not"],
+        hint: "nicht können – Vergangenheit",
+        explanation: "Vergangenheit von can't → couldn't.",
+      },
+      {
+        type: "gap",
+        sentence: "___ I pay by card here? – Yes, of course.",
+        answers: ["Can", "Could", "May"],
+        explanation: "Frage nach Erlaubnis/Möglichkeit → Can I …? (höflicher: Could I …?)",
+      },
+      {
+        type: "order",
+        words: ["You", "don't", "have", "to", "bring", "anything"],
+        translation: "Du musst nichts mitbringen.",
+        explanation: "muss nicht = don't have to + Grundform.",
+      },
+      {
+        type: "order",
+        words: ["Could", "you", "tell", "me", "the", "way", "to", "the", "station"],
+        translation: "Könnten Sie mir den Weg zum Bahnhof sagen?",
+        explanation: "Höfliche Bitte: Could + you + Grundform.",
+      },
+    ],
+  },
+];

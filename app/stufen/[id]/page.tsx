@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, BookOpen, Check, ChevronRight, Layers, MessageCircle, PenLine, Target } from "lucide-react";
-import { Button, Loading, PageHeader, Panel } from "@/components/ui";
+import { ArrowLeft, Award, BookOpen, Check, ChevronRight, Layers, MessageCircle, PenLine, Target } from "lucide-react";
+import { Button, LinkButton, Loading, PageHeader, Panel } from "@/components/ui";
 import { lessonsForLevel } from "@/lib/content/grammar";
 import { getLevel } from "@/lib/content/levels";
 import { CHAT_TOPICS, WRITING_TASKS } from "@/lib/content/topics";
@@ -89,6 +89,31 @@ export default function LevelPage() {
           })}
         </div>
       </section>
+
+      <Panel className="mb-6 border-sage-200">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex gap-4">
+            <span
+              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${
+                state.exams[id]?.passed ? "bg-sage-600 text-white" : "bg-sage-50 text-sage-700"
+              }`}
+            >
+              <Award className="h-6 w-6" />
+            </span>
+            <div>
+              <h2 className="font-serif text-xl text-navy-800">Abschlussprüfung</h2>
+              <p className="text-navy-600">
+                {state.exams[id]
+                  ? `Bestes Ergebnis: ${state.exams[id].percent} %${state.exams[id].passed ? " – bestanden" : ""}`
+                  : "Text mit Lücken, Grammatik, Leseverstehen und Wortschatz – alles, was du auf dieser Stufe gelernt hast."}
+              </p>
+            </div>
+          </div>
+          <LinkButton href={`/stufen/${id}/pruefung`} variant={state.exams[id]?.passed ? "secondary" : "primary"} className="shrink-0">
+            {state.exams[id] ? "Erneut ablegen" : "Zur Prüfung"} <ChevronRight className="h-4 w-4" />
+          </LinkButton>
+        </div>
+      </Panel>
 
       <div className="grid gap-6 md:grid-cols-2">
         <Panel>

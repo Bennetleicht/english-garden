@@ -43,6 +43,9 @@ export default function LevelsPage() {
                   <span className="font-serif text-2xl text-navy-800">{level.title}</span>
                   <span className="text-sm font-semibold text-sage-600">{level.cefr}</span>
                   {current && <span className="rounded-full bg-sage-100 px-2.5 py-0.5 text-xs font-semibold text-sage-800">Deine Stufe</span>}
+                  {state.exams[level.id]?.passed && (
+                    <span className="rounded-full bg-sage-600 px-2.5 py-0.5 text-xs font-semibold text-white">Prüfung bestanden</span>
+                  )}
                 </span>
                 <span className="mt-1 block text-navy-600">{level.short}</span>
                 <span className="mt-4 flex items-center gap-3">

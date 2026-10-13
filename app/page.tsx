@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
-import { BookOpen, CalendarDays, ChevronRight, Compass, Layers, Leaf, MessageCircle, PenLine } from "lucide-react";
+import { Award, BookOpen, CalendarDays, ChevronRight, Compass, Layers, Leaf, MessageCircle, PenLine } from "lucide-react";
 import { Button, Loading, Panel, ProgressBar } from "@/components/ui";
 import { lessonsForLevel } from "@/lib/content/grammar";
 import { getLevel } from "@/lib/content/levels";
@@ -105,6 +105,20 @@ export default function HomePage() {
             <p className="text-navy-600">Schau dir an, was du diese Woche gelernt hast – {weekCards.length} Wörter und Sätze.</p>
           </div>
           <ChevronRight className="h-5 w-5 text-navy-500" aria-hidden />
+        </Link>
+      )}
+
+      {doneLessons.length === levelLessons.length && !state.exams[profile.level]?.passed && (
+        <Link
+          href={`/stufen/${profile.level}/pruefung`}
+          className="mb-8 flex items-center gap-4 rounded-2xl border border-sage-200 bg-sage-50 px-6 py-5 transition-colors hover:bg-sage-100"
+        >
+          <Award className="h-7 w-7 shrink-0 text-sage-600" aria-hidden />
+          <div className="flex-1">
+            <p className="font-semibold text-navy-800">Bereit für die Abschlussprüfung?</p>
+            <p className="text-navy-600">Du hast alle Lektionen von „{level.title}“ bearbeitet. Zeig, was du kannst!</p>
+          </div>
+          <ChevronRight className="h-5 w-5 text-sage-600" aria-hidden />
         </Link>
       )}
 
