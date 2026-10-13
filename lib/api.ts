@@ -12,13 +12,21 @@ function getCode(): string {
   }
 }
 
-async function request(path: string, init: RequestInit, retry = true): Promise<Response> {
+export async function request(path: string, init: RequestInit, retry = true): Promise<Response> {
   const headers = new Headers(init.headers);
   const code = getCode();
   if (code) headers.set("x-access-code", code);
   const res = await fetch(path, { ...init, headers });
 
-  if (res.status === 401 && retry) {
+  const isAccessError =
+    res.status === 401 &&
+    (await res
+      .clone()
+      .json()
+      .then((d: { error?: string }) => d.error === "access")
+      .catch(() => false));
+
+  if (isAccessError && retry) {
     const entered = window.prompt("Bitte gib einmalig den Zugangscode ein:");
     if (entered) {
       try {
@@ -66,6 +74,7 @@ export interface ServerStatus {
   ai: boolean;
   provider: string | null;
   transcription: boolean;
+  accounts: boolean;
 }
 
 let statusCache: Promise<ServerStatus> | null = null;
@@ -74,7 +83,7 @@ export function getStatus(): Promise<ServerStatus> {
   if (!statusCache) {
     statusCache = fetch("/api/status")
       .then((r) => r.json() as Promise<ServerStatus>)
-      .catch(() => ({ ai: false, provider: null, transcription: false }));
+      .catch(() => ({ ai: false, provider: null, transcription: false, accounts: false }));
   }
   return statusCache;
 }

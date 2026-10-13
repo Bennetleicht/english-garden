@@ -1,4 +1,5 @@
 import { getChatProvider, hasTranscription } from "@/lib/ai";
+import { accountsEnabled } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -8,5 +9,6 @@ export function GET() {
     ai: Boolean(provider),
     provider: provider?.name ?? null,
     transcription: hasTranscription(),
+    accounts: accountsEnabled(),
   });
 }

@@ -6,10 +6,10 @@ import { useState, type ReactNode } from "react";
 import { ArrowLeft, Award, BookOpenText, Clock, Languages, ListChecks, PenLine } from "lucide-react";
 import { ExamRunner, PASS_PERCENT } from "@/components/ExamRunner";
 import { Button, Loading, PageHeader, Panel } from "@/components/ui";
-import { examSize, getExam } from "@/lib/content/exams";
+import { examSize, getExam, uncoveredLessons } from "@/lib/content/exams";
 import { lessonsForLevel } from "@/lib/content/grammar";
 import { getLevel } from "@/lib/content/levels";
-import { DECKS } from "@/lib/content/vocab";
+import { vocabForLevel } from "@/lib/content/chapters";
 import { formatDayGerman } from "@/lib/dates";
 import { useAppState } from "@/lib/storage";
 
@@ -37,7 +37,7 @@ export default function ExamPage() {
       {started ? (
         <>
           <PageHeader eyebrow={`Abschlussprüfung · Stufe ${id}`} title={level.title} />
-          <ExamRunner exam={exam} deck={DECKS[id].items} />
+          <ExamRunner exam={exam} deck={vocabForLevel(id)} />
         </>
       ) : (
         <>
@@ -48,9 +48,9 @@ export default function ExamPage() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <PartCard icon={<PenLine className="h-5 w-5" />} title="Teil 1: Zusammenhängender Text" text={`Eine kurze Geschichte mit ${exam.cloze.gaps.length} Lücken.`} />
-            <PartCard icon={<ListChecks className="h-5 w-5" />} title="Teil 2: Grammatik" text={`${exam.grammar.length} gemischte Aufgaben zu allen Themen der Stufe.`} />
+            <PartCard icon={<ListChecks className="h-5 w-5" />} title="Teil 2: Grammatik" text={`${exam.grammar.length + uncoveredLessons(exam).length} gemischte Aufgaben zu allen Themen der Stufe.`} />
             <PartCard icon={<BookOpenText className="h-5 w-5" />} title="Teil 3: Leseverstehen" text={`Ein englischer Text mit ${exam.reading.questions.length} Fragen.`} />
-            <PartCard icon={<Languages className="h-5 w-5" />} title="Teil 4: Wortschatz" text="8 Wörter und Wendungen aus dem Wortschatz dieser Stufe." />
+            <PartCard icon={<Languages className="h-5 w-5" />} title="Teil 4: Wortschatz" text="8 Wörter und Wendungen aus den Kapiteln dieser Stufe." />
           </div>
 
           <Panel className="mt-6">

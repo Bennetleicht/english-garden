@@ -2,103 +2,22 @@
 
 import { useSyncExternalStore } from "react";
 import { today } from "./dates";
+import { defaultState, migrate, normalizeFront, type AppState, type Card, type CardSource } from "./state";
 
 /**
- * Der gesamte Lernstand liegt im localStorage des Browsers.
- * Kein Server, keine Datenbank, keine Kosten. Über "Einstellungen" lässt sich
- * eine Sicherungsdatei exportieren und auf einem anderen Gerät importieren.
+ * Lernstand im Browser (localStorage). Ist ein Konto angemeldet, gleicht `lib/sync.ts`
+ * jede Änderung automatisch mit der Konto-Datenbank ab – so ist der Stand auf allen Geräten gleich.
+ * Ohne Konto funktioniert alles wie bisher rein lokal.
  */
 
-export type CardSource = "start" | "gespraech" | "schreiben" | "manuell" | "grammatik";
-
-export interface Card {
-  id: string;
-  front: string; // Englisch
-  back: string; // Deutsch / Erklärung
-  example?: string;
-  source: CardSource;
-  createdAt: string; // YYYY-MM-DD
-  due: string; // YYYY-MM-DD
-  interval: number; // Tage
-  ease: number;
-  reps: number;
-  lapses: number;
-  history: { day: string; ok: boolean }[];
-}
-
-export interface LessonResult {
-  correct: number;
-  total: number;
-  day: string;
-}
-
-export interface ExamResult {
-  percent: number;
-  passed: boolean;
-  day: string;
-}
-
-export interface WritingEntry {
-  id: string;
-  day: string;
-  task: string;
-  text: string;
-  summary: string;
-}
-
-export interface AppState {
-  version: 1;
-  profile: {
-    name: string;
-    level: number; // 1–4
-    placementDone: boolean;
-    voiceURI: string;
-    speechRate: number;
-    autoSpeak: boolean;
-  };
-  activityDays: string[];
-  cards: Card[];
-  lessons: Record<string, LessonResult>;
-  addedDecks: number[];
-  writing: WritingEntry[];
-  exams: Record<number, ExamResult>; // beste Abschlussprüfung je Stufe
-}
+export type { AppState, Card, CardSource, ExamResult, LessonResult, WritingEntry } from "./state";
+export { defaultState } from "./state";
 
 const KEY = "english-garden-v1";
 
-export function defaultState(): AppState {
-  return {
-    version: 1,
-    profile: { name: "", level: 1, placementDone: false, voiceURI: "", speechRate: 0.92, autoSpeak: false },
-    activityDays: [],
-    cards: [],
-    lessons: {},
-    addedDecks: [],
-    writing: [],
-    exams: {},
-  };
-}
-
-function migrate(raw: unknown): AppState {
-  const base = defaultState();
-  if (!raw || typeof raw !== "object") return base;
-  const r = raw as Partial<AppState>;
-  return {
-    ...base,
-    ...r,
-    profile: { ...base.profile, ...(r.profile ?? {}) },
-    activityDays: Array.isArray(r.activityDays) ? r.activityDays : [],
-    cards: Array.isArray(r.cards) ? r.cards : [],
-    lessons: r.lessons ?? {},
-    addedDecks: Array.isArray(r.addedDecks) ? r.addedDecks : [],
-    writing: Array.isArray(r.writing) ? r.writing : [],
-    exams: r.exams && typeof r.exams === "object" ? r.exams : {},
-    version: 1,
-  };
-}
-
 let state: AppState | null = null;
 const listeners = new Set<() => void>();
+const changeListeners = new Set<(s: AppState) => void>();
 
 function load(): AppState {
   try {
@@ -108,6 +27,14 @@ function load(): AppState {
     /* defekte Daten → neu anfangen */
   }
   return defaultState();
+}
+
+function persist(s: AppState) {
+  try {
+    window.localStorage.setItem(KEY, JSON.stringify(s));
+  } catch {
+    /* Speicher voll oder privat – App läuft trotzdem weiter */
+  }
 }
 
 function getSnapshot(): AppState {
@@ -139,18 +66,46 @@ export function useAppState(): AppState | null {
   return useSyncExternalStore<AppState | null>(subscribe, getSnapshot, getServerSnapshot);
 }
 
+export function getState(): AppState {
+  return getSnapshot();
+}
+
+/** Wird bei jeder Änderung durch die Nutzerin aufgerufen (für den Konto-Abgleich). */
+export function onLocalChange(cb: (s: AppState) => void): () => void {
+  changeListeners.add(cb);
+  return () => changeListeners.delete(cb);
+}
+
 export function updateState(fn: (s: AppState) => AppState) {
-  state = fn(getSnapshot());
-  try {
-    window.localStorage.setItem(KEY, JSON.stringify(state));
-  } catch {
-    /* Speicher voll oder privat – App läuft trotzdem weiter */
-  }
+  const prev = getSnapshot();
+  const next = fn(prev);
+  if (next === prev) return;
+  state = { ...next, updatedAt: Date.now() };
+  persist(state);
+  listeners.forEach((l) => l());
+  changeListeners.forEach((l) => l(state!));
+}
+
+/** Übernimmt einen Stand vom Server, ohne ihn gleich wieder zurückzuschicken. */
+export function applyRemoteState(next: AppState) {
+  state = migrate(next);
+  persist(state);
   listeners.forEach((l) => l());
 }
 
 export function replaceState(next: unknown) {
   updateState(() => migrate(next));
+}
+
+/** Löscht den lokalen Stand (z. B. beim Abmelden). */
+export function clearLocalState() {
+  state = defaultState();
+  try {
+    window.localStorage.removeItem(KEY);
+  } catch {
+    /* ignorieren */
+  }
+  listeners.forEach((l) => l());
 }
 
 export function exportState(): string {
@@ -168,13 +123,9 @@ export function newId(): string {
   return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 }
 
-function normalize(text: string) {
-  return text.trim().toLowerCase().replace(/[’`]/g, "'").replace(/\s+/g, " ");
-}
-
 export function hasCard(s: AppState, front: string): boolean {
-  const n = normalize(front);
-  return s.cards.some((c) => normalize(c.front) === n);
+  const n = normalizeFront(front);
+  return s.cards.some((c) => normalizeFront(c.front) === n);
 }
 
 export function addCards(items: { front: string; back: string; example?: string }[], source: CardSource): number {
@@ -182,9 +133,9 @@ export function addCards(items: { front: string; back: string; example?: string 
   updateState((s) => {
     const t = today();
     const fresh: Card[] = [];
-    const seen = new Set(s.cards.map((c) => normalize(c.front)));
+    const seen = new Set(s.cards.map((c) => normalizeFront(c.front)));
     for (const item of items) {
-      const n = normalize(item.front);
+      const n = normalizeFront(item.front);
       if (!n || seen.has(n)) continue;
       seen.add(n);
       fresh.push({
@@ -203,7 +154,7 @@ export function addCards(items: { front: string; back: string; example?: string 
       });
     }
     added = fresh.length;
-    return { ...s, cards: [...s.cards, ...fresh] };
+    return fresh.length ? { ...s, cards: [...s.cards, ...fresh] } : s;
   });
   return added;
 }
@@ -213,11 +164,11 @@ export function saveCard(card: Card) {
 }
 
 export function deleteCard(id: string) {
-  updateState((s) => ({ ...s, cards: s.cards.filter((c) => c.id !== id) }));
+  updateState((s) => ({ ...s, cards: s.cards.filter((c) => c.id !== id), deletedCards: [...s.deletedCards, id] }));
 }
 
 export function setProfile(patch: Partial<AppState["profile"]>) {
-  updateState((s) => ({ ...s, profile: { ...s.profile, ...patch } }));
+  updateState((s) => ({ ...s, profile: { ...s.profile, ...patch }, profileUpdatedAt: Date.now() }));
 }
 
 export function saveLessonResult(slug: string, correct: number, total: number) {
@@ -234,4 +185,21 @@ export function saveExamResult(level: number, percent: number, passed: boolean) 
     if (prev && prev.percent >= percent) return s;
     return { ...s, exams: { ...s.exams, [level]: { percent, passed: passed || Boolean(prev?.passed), day: today() } } };
   });
+}
+
+export function saveChapterTest(chapterId: string, percent: number, passed: boolean) {
+  updateState((s) => {
+    const prev = s.chapterTests[chapterId];
+    if (prev && prev.percent >= percent) return s;
+    return {
+      ...s,
+      chapterTests: { ...s.chapterTests, [chapterId]: { percent, passed: passed || Boolean(prev?.passed), day: today() } },
+    };
+  });
+}
+
+/** Legt den Wortschatz eines Kapitels in den Vokabelkasten. */
+export function addChapterVocab(chapterId: string, items: { front: string; back: string; example?: string }[]) {
+  addCards(items, "start");
+  updateState((s) => (s.addedVocab.includes(chapterId) ? s : { ...s, addedVocab: [...s.addedVocab, chapterId] }));
 }

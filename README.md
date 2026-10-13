@@ -11,7 +11,8 @@ nur klare Erklärungen, ein kluger Vokabelkasten und ein geduldiger KI-Gespräch
 | KI-Gesprächspartner & Schreib-Feedback | Google Gemini API (Free Tier) – alternativ Groq | kostenlos, ohne Kreditkarte |
 | Spracheingabe (Sprechen statt Tippen) | Spracherkennung des Browsers (Chrome, Edge, Safari) | kostenlos |
 | Vorlesen | Stimmen des Browsers/Betriebssystems | kostenlos |
-| Lernstand, Vokabeln, Tageszähler | `localStorage` im Browser (mit Sicherungsdatei) | kostenlos, keine Datenbank nötig |
+| Konten & Lernstand auf allen Geräten | Neon-Postgres-Datenbank (Free Plan, über Vercel → Storage) | kostenlos, ohne Kreditkarte |
+| Offline-Zwischenspeicher | `localStorage` im Browser | kostenlos |
 
 > Die kostenlosen KI-Kontingente (bei Gemini aktuell einige hundert Anfragen pro Tag) reichen für eine Person, die täglich übt,
 > sehr gut aus. Ist das Kontingent einmal erschöpft, zeigt die App einen freundlichen Hinweis – es entstehen **niemals**
@@ -21,16 +22,21 @@ nur klare Erklärungen, ein kluger Vokabelkasten und ein geduldiger KI-Gespräch
 
 ## Was die App kann
 
-**Lernweg in 4 Stufen** (angelehnt an A1–B2) mit Einstufungstest:
+**Eigene Konten** (z. B. für Mama und Papa): Name + Passwort, einmal pro Gerät anmelden – der Fortschritt ist auf Handy,
+Tablet und Computer gleich.
+
+**Lernweg in 4 Stufen** (angelehnt an A1–B2) mit Einstufungstest. Jede Stufe hat **3 Kapitel** mit je 3–4 Lektionen,
+30 Vokabeln und einem **Kapiteltest** – und am Ende eine **Abschlussprüfung**:
 1. Grundlagen & Alltag (A1/A2)
 2. Sicher im Gespräch (A2/B1)
 3. Flüssig ausdrücken (B1/B2)
 4. Freies Englisch & Kultur (B2)
 
-**Grammatik**: 18 Lektionen, auf Deutsch erklärt, mit Beispielen zum Anhören und jeweils 5 Übungen (Lückentext, Auswahl, Satzbau).
+**Grammatik**: 43 Lektionen, auf Deutsch erklärt – mit Tabellen, typischen Fehlern, Beispielen zum Anhören und je 10–12
+Übungen (Lückentext, Auswahl, Satzbau).
 
 **Vokabeltrainer** nach dem Anki-Prinzip (Spaced Repetition): Karte ansehen → aufdecken → „Gewusst“ / „Nicht gewusst“.
-Schwierige Karten kommen früher und öfter wieder. Pro Stufe gibt es einen Startwortschatz. Freitag bis Sonntag erscheint ein
+Schwierige Karten kommen früher und öfter wieder. Jedes Kapitel bringt 30 thematische Vokabeln mit (insgesamt 360). Freitag bis Sonntag erscheint ein
 **Wochenrückblick** mit Statistik und einer Wiederholung aller Wörter der Woche.
 
 **KI-Sprachtrainer**: Themen wählen (oder „Überrasch mich“), sprechen oder tippen. Fehler werden freundlich als
@@ -105,6 +111,22 @@ Fertig! 🎉 Jede spätere Änderung, die du auf GitHub hochlädst, wird automat
 > Schlüssel später ändern: Vercel → Projekt → **Settings → Environment Variables**, danach unter **Deployments** beim
 > obersten Eintrag „⋯ → Redeploy“.
 
+### Schritt 5: Konten einrichten (kostenlose Datenbank)
+
+Damit jeder ein eigenes Konto hat und der Fortschritt auf allen Geräten gleich ist:
+
+1. Vercel → dein Projekt → links **„Storage“** → **„Create Database“**
+2. **Neon** (Postgres) auswählen → **Free**-Plan → einen Namen vergeben (z. B. `english-garden-db`), Region **Frankfurt** → **Create**
+3. Bei „Connect Project“ dein Projekt `english-garden` auswählen und bestätigen. Vercel trägt die Verbindung
+   (`DATABASE_URL`) automatisch ein.
+4. **Deployments** → oberster Eintrag → „⋯ → **Redeploy**“
+
+Beim nächsten Öffnen fragt die App „Wer lernt heute?“. Jeder legt einmal ein Konto mit Vorname und Passwort an.
+Fortschritt, der vorher schon auf einem Gerät gespeichert war, kann dabei übernommen werden.
+
+Die Tabelle legt die App beim ersten Zugriff selbst an. Ohne Datenbank funktioniert die App weiterhin – dann ohne Konten,
+nur auf dem jeweiligen Gerät.
+
 ### Zugangscode (empfohlen)
 
 Wer den Link kennt, könnte sonst dein kostenloses KI-Kontingent mitbenutzen. Wenn du `ACCESS_CODE` setzt, fragt die App beim
@@ -123,9 +145,8 @@ auch ohne Code.
 3. Beim ersten Tippen aufs Mikrofon den **Mikrofonzugriff erlauben**.
 4. Unter **Einstellungen** eine angenehme Stimme und das Sprechtempo wählen.
 
-**Wichtig:** Der Lernstand wird im Browser des jeweiligen Geräts gespeichert. Wer auf mehreren Geräten lernt, kann unter
-**Einstellungen → Datensicherung** eine Sicherungsdatei herunterladen und auf dem anderen Gerät laden. Ab und zu eine
-Sicherung zu machen schadet nie.
+Mit Konten (Schritt 5) meldet man sich einmal pro Gerät an und bleibt dann angemeldet. Der Fortschritt wird automatisch
+gespeichert und auf allen Geräten abgeglichen – auch wenn man zwischendurch offline gelernt hat.
 
 ---
 
@@ -168,11 +189,15 @@ app/
   api/chat/                 KI-Gespräch (inkl. Korrekturen)
   api/feedback/             KI-Feedback für Texte
   api/transcribe/           Spracheingabe-Rückfall über Groq Whisper (optional)
+  api/account/              Anmelden, Konto anlegen, Lernstand laden/speichern
   api/status/               Welche Dienste sind eingerichtet?
 components/                 Wiederverwendbare Bausteine (Karteikarte, Übungen, Mikrofon …)
 lib/
   ai.ts                     Anbindung an Gemini/Groq (OpenAI-kompatibel, ohne Zusatzpakete)
-  storage.ts                Lernstand im localStorage
+  state.ts                  Datenmodell des Lernstands + Zusammenführen mehrerer Geräte
+  storage.ts                Lernstand im Browser (localStorage)
+  sync.ts                   Anmeldung & automatischer Abgleich mit dem Konto
+  db.ts, auth.ts            Konto-Datenbank (Neon) und Passwort-/Token-Logik
   srs.ts                    Spaced-Repetition-Algorithmus (vereinfachtes SM-2)
   speech.ts                 Vorlesen & Spracherkennung im Browser
   content/                  Alle Lerninhalte: Stufen, Grammatik, Wortschatz, Themen, Einstufung
@@ -182,9 +207,9 @@ lib/
 
 Alle Inhalte sind einfache TypeScript-Dateien in `lib/content/`:
 
-- **Neue Grammatik-Lektion:** in `lib/content/grammar.ts` einen Eintrag nach dem Muster der vorhandenen ergänzen.
-  `**Text**` wird fett dargestellt.
-- **Wortschatz:** `lib/content/vocab.ts`
+- **Grammatik-Lektionen:** `lib/content/lessons/levelN.ts` (`**Text**` wird fett dargestellt)
+- **Kapitel & Wortschatz:** `lib/content/chapters/levelN.ts` (welche Lektionen zu welchem Kapitel gehören + 30 Vokabeln)
+- **Abschlussprüfungen:** `lib/content/exams/levelN.ts`
 - **Gesprächsthemen und Schreibaufgaben:** `lib/content/topics.ts`
 
 ---
@@ -202,7 +227,8 @@ Alle Inhalte sind einfache TypeScript-Dateien in `lib/content/`:
 
 ## Datenschutz
 
-- Lernstand, Vokabeln und Texte bleiben im Browser des Geräts. Es gibt keine Datenbank und kein Benutzerkonto.
+- Mit Konten liegt der Lernstand (Vokabeln, Ergebnisse, eigene Texte) in deiner eigenen Neon-Datenbank. Passwörter werden
+  nur verschlüsselt (scrypt) gespeichert. Ohne Konten bleibt alles im Browser des Geräts.
 - Für Gespräche und Schreib-Feedback wird der jeweilige Text an die KI (Google Gemini bzw. Groq) gesendet. Beim kostenlosen
   Gemini-Kontingent kann Google Eingaben zur Verbesserung seiner Dienste verwenden – also im Gespräch besser keine
   sensiblen persönlichen Daten erzählen.

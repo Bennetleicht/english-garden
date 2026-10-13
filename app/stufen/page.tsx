@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Check, ChevronRight, Compass } from "lucide-react";
 import { Loading, PageHeader, ProgressBar } from "@/components/ui";
+import { chapterProgress, chaptersForLevel } from "@/lib/content/chapters";
 import { lessonsForLevel } from "@/lib/content/grammar";
 import { LEVELS } from "@/lib/content/levels";
 import { useAppState } from "@/lib/storage";
@@ -49,9 +50,10 @@ export default function LevelsPage() {
                 </span>
                 <span className="mt-1 block text-navy-600">{level.short}</span>
                 <span className="mt-4 flex items-center gap-3">
-                  <ProgressBar value={done} max={lessons.length} className="max-w-xs" />
+                  <ProgressBar value={done} max={lessons.length} className="max-w-[12rem]" />
                   <span className="text-sm text-navy-500">
-                    {done}/{lessons.length}
+                    {chaptersForLevel(level.id).filter((c) => chapterProgress(c, state).complete).length} von{" "}
+                    {chaptersForLevel(level.id).length} Kapiteln · {done}/{lessons.length} Lektionen
                   </span>
                 </span>
               </span>

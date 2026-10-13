@@ -4,9 +4,10 @@ import Link from "next/link";
 import { Fragment, useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, Award, Check, ChevronRight, RotateCcw, X } from "lucide-react";
 import { matchesAny, normalizeAnswer, shuffle, shuffleWords } from "@/lib/answers";
+import { uncoveredLessons } from "@/lib/content/exams";
 import { getLesson } from "@/lib/content/grammar";
 import type { Exam, ExamExercise } from "@/lib/content/types";
-import type { VocabItem } from "@/lib/content/vocab";
+import type { VocabItem } from "@/lib/content/types";
 import { markActivity, saveExamResult } from "@/lib/storage";
 import { Button, LinkButton, Panel, ProgressBar } from "./ui";
 
@@ -37,6 +38,7 @@ export function ExamRunner({ exam, deck }: { exam: Exam; deck: VocabItem[] }) {
   const [reading, setReading] = useState<Record<number, number>>({});
   const [vocab, setVocab] = useState<Record<number, number>>({});
   const [vocabQuestions, setVocabQuestions] = useState<VocabQuestion[]>([]);
+  const [grammarItems, setGrammarItems] = useState<ExamExercise[]>(exam.grammar);
   const [results, setResults] = useState<Scored[] | null>(null);
 
   // Wortschatzfragen aus dem Startwortschatz der Stufe – zufällig, deshalb erst im Browser erzeugen
@@ -50,6 +52,16 @@ export function ExamRunner({ exam, deck }: { exam: Exam; deck: VocabItem[] }) {
       }),
     );
   }, [deck]);
+
+  // Je eine anspruchsvollere Aufgabe aus Lektionen, die der feste Prüfungsteil nicht abdeckt
+  useEffect(() => {
+    const extras = uncoveredLessons(exam).flatMap((slug): ExamExercise[] => {
+      const ex = getLesson(slug)?.exercises ?? [];
+      const pick = shuffle(ex.slice(Math.floor(ex.length / 2)))[0];
+      return pick ? [{ ...pick, lesson: slug }] : [];
+    });
+    setGrammarItems(shuffle([...exam.grammar, ...extras]));
+  }, [exam]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -71,7 +83,7 @@ export function ExamRunner({ exam, deck }: { exam: Exam; deck: VocabItem[] }) {
       });
     });
 
-    exam.grammar.forEach((ex, i) => {
+    grammarItems.forEach((ex, i) => {
       const given = grammar[i] ?? "";
       scored.push({ category: ex.lesson, ...scoreExercise(ex, given) });
     });
@@ -132,7 +144,7 @@ export function ExamRunner({ exam, deck }: { exam: Exam; deck: VocabItem[] }) {
 
       <div key={part} className="animate-fadeIn">
         {part === 0 && <ClozePart exam={exam} values={cloze} onChange={(i, v) => setCloze((c) => ({ ...c, [i]: v }))} />}
-        {part === 1 && <GrammarPart items={exam.grammar} values={grammar} onChange={(i, v) => setGrammar((g) => ({ ...g, [i]: v }))} />}
+        {part === 1 && <GrammarPart items={grammarItems} values={grammar} onChange={(i, v) => setGrammar((g) => ({ ...g, [i]: v }))} />}
         {part === 2 && <ReadingPart exam={exam} values={reading} onChange={(i, v) => setReading((r) => ({ ...r, [i]: v }))} />}
         {part === 3 && <VocabPart questions={vocabQuestions} values={vocab} onChange={(i, v) => setVocab((x) => ({ ...x, [i]: v }))} />}
       </div>

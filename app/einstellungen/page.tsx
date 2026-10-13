@@ -1,16 +1,19 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Download, Upload, Volume2 } from "lucide-react";
+import { Cloud, Download, LogOut, Upload, Volume2 } from "lucide-react";
 import { Button, Loading, PageHeader, Panel } from "@/components/ui";
 import { getStatus, type ServerStatus } from "@/lib/api";
 import { LEVELS } from "@/lib/content/levels";
 import { today } from "@/lib/dates";
 import { loadEnglishVoices, pickDefaultVoice, speak } from "@/lib/speech";
 import { defaultState, exportState, replaceState, setProfile, useAppState } from "@/lib/storage";
+import { pushNow, signOut, useSession, useSyncStatus } from "@/lib/sync";
 
 export default function SettingsPage() {
   const state = useAppState();
+  const session = useSession();
+  const syncStatus = useSyncStatus();
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [status, setStatus] = useState<ServerStatus | null>(null);
   const [message, setMessage] = useState("");
@@ -52,6 +55,32 @@ export default function SettingsPage() {
       <PageHeader eyebrow="Einstellungen" title="Alles nach deinem Geschmack" />
 
       <div className="space-y-6">
+        {session && (
+          <Panel>
+            <h2 className="font-serif text-xl text-navy-800">Dein Konto</h2>
+            <p className="mt-2 text-lg text-navy-700">
+              Angemeldet als <strong>{session.name}</strong>
+            </p>
+            <p className="mt-1 flex items-center gap-2 text-navy-600">
+              <Cloud className="h-5 w-5 text-sage-600" />
+              {syncStatus === "offline"
+                ? "Gerade keine Verbindung – dein Fortschritt wird gespeichert, sobald du wieder online bist."
+                : syncStatus === "syncing"
+                  ? "Wird gespeichert …"
+                  : "Dein Fortschritt ist auf allen Geräten gespeichert."}
+            </p>
+            <Button
+              variant="secondary"
+              className="mt-5"
+              onClick={() => {
+                if (window.confirm("Auf diesem Gerät abmelden? Dein Fortschritt bleibt in deinem Konto gespeichert.")) void signOut();
+              }}
+            >
+              <LogOut className="h-4 w-4" /> Abmelden
+            </Button>
+          </Panel>
+        )}
+
         <Panel>
           <h2 className="font-serif text-xl text-navy-800">Über dich</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -171,6 +200,7 @@ export default function SettingsPage() {
             onClick={() => {
               if (window.confirm("Wirklich den gesamten Lernstand löschen? Das kann nicht rückgängig gemacht werden.")) {
                 replaceState(defaultState());
+                if (session) void pushNow({ replace: true });
               }
             }}
           >

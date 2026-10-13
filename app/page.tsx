@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
-import { Award, BookOpen, CalendarDays, ChevronRight, Compass, Layers, Leaf, MessageCircle, PenLine } from "lucide-react";
+import { Award, BookOpen, CalendarDays, ChevronRight, ClipboardCheck, Compass, Layers, Leaf, MessageCircle, PenLine } from "lucide-react";
 import { Button, Loading, Panel, ProgressBar } from "@/components/ui";
-import { lessonsForLevel } from "@/lib/content/grammar";
+import { chapterProgress, chaptersForLevel, currentChapter } from "@/lib/content/chapters";
+import { getLesson, LESSONS } from "@/lib/content/grammar";
 import { getLevel } from "@/lib/content/levels";
 import { WRITING_TASKS } from "@/lib/content/topics";
 import { computeStreak, formatDayGerman, greeting, isInCurrentWeek, parseDay, today } from "@/lib/dates";
-import { dueCount } from "@/lib/srs";
+import { dueCount, strength } from "@/lib/srs";
 import { setProfile, useAppState } from "@/lib/storage";
 
 export default function HomePage() {
@@ -51,9 +52,22 @@ export default function HomePage() {
   }
 
   const level = getLevel(profile.level);
-  const levelLessons = lessonsForLevel(profile.level);
-  const doneLessons = levelLessons.filter((l) => state.lessons[l.slug]);
-  const nextLesson = levelLessons.find((l) => !state.lessons[l.slug]) ?? levelLessons[0];
+  const chapters = chaptersForLevel(profile.level);
+  const chapter = currentChapter(profile.level, state);
+  const chapterIndex = chapter ? chapters.indexOf(chapter) : 0;
+  const cp = chapter ? chapterProgress(chapter, state) : null;
+  const allChaptersComplete = chapters.length > 0 && chapters.every((c) => chapterProgress(c, state).complete);
+  const nextSlug = chapter?.lessons.find((slug) => !state.lessons[slug]);
+  const nextLesson = getLesson(nextSlug ?? chapter?.lessons[0] ?? LESSONS[0].slug) ?? LESSONS[0];
+  const chapterTestDue = Boolean(chapter && cp && !nextSlug && !cp.testPassed);
+
+  // Meilensteine – ruhig, aber sichtbar
+  const lessonsDoneTotal = Object.keys(state.lessons).length;
+  const wordsKnown = state.cards.filter((c) => {
+    const st = strength(c);
+    return st === "gefestigt" || st === "sicher";
+  }).length;
+  const chaptersDoneTotal = [1, 2, 3, 4].flatMap((l) => chaptersForLevel(l)).filter((c) => chapterProgress(c, state).complete).length;
   const due = dueCount(state.cards);
   const { count: streak, learnedToday } = computeStreak(state.activityDays);
 
@@ -108,7 +122,7 @@ export default function HomePage() {
         </Link>
       )}
 
-      {doneLessons.length === levelLessons.length && !state.exams[profile.level]?.passed && (
+      {allChaptersComplete && !state.exams[profile.level]?.passed && (
         <Link
           href={`/stufen/${profile.level}/pruefung`}
           className="mb-8 flex items-center gap-4 rounded-2xl border border-sage-200 bg-sage-50 px-6 py-5 transition-colors hover:bg-sage-100"
@@ -116,7 +130,7 @@ export default function HomePage() {
           <Award className="h-7 w-7 shrink-0 text-sage-600" aria-hidden />
           <div className="flex-1">
             <p className="font-semibold text-navy-800">Bereit für die Abschlussprüfung?</p>
-            <p className="text-navy-600">Du hast alle Lektionen von „{level.title}“ bearbeitet. Zeig, was du kannst!</p>
+            <p className="text-navy-600">Du hast alle Kapitel von „{level.title}“ abgeschlossen. Zeig, was du kannst!</p>
           </div>
           <ChevronRight className="h-5 w-5 text-sage-600" aria-hidden />
         </Link>
@@ -137,12 +151,22 @@ export default function HomePage() {
           }
           highlight={due > 0}
         />
-        <TodayCard
-          href={`/grammatik/${nextLesson.slug}`}
-          icon={<BookOpen className="h-6 w-6" />}
-          title={state.lessons[nextLesson.slug] ? "Grammatik auffrischen" : "Nächste Lektion"}
-          text={`${nextLesson.title} – ${nextLesson.subtitle}`}
-        />
+        {chapterTestDue && chapter ? (
+          <TodayCard
+            href={`/stufen/${profile.level}/kapitel/${chapter.id}`}
+            icon={<ClipboardCheck className="h-6 w-6" />}
+            title="Kapiteltest"
+            text={`Alle Lektionen von „${chapter.title}“ geschafft – schließe das Kapitel mit dem Test ab.`}
+            highlight
+          />
+        ) : (
+          <TodayCard
+            href={`/grammatik/${nextLesson.slug}`}
+            icon={<BookOpen className="h-6 w-6" />}
+            title={state.lessons[nextLesson.slug] ? "Grammatik auffrischen" : "Nächste Lektion"}
+            text={`${nextLesson.title} – ${nextLesson.subtitle}`}
+          />
+        )}
         <TodayCard
           href="/gespraech"
           icon={<MessageCircle className="h-6 w-6" />}
@@ -161,19 +185,48 @@ export default function HomePage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.14em] text-sage-600">
-              Deine Stufe · {level.cefr}
+              Stufe {level.id} · {level.title} · {level.cefr}
             </p>
-            <h2 className="mt-1 font-serif text-2xl text-navy-800">{level.title}</h2>
-            <p className="mt-1 text-navy-600">
-              {doneLessons.length} von {levelLessons.length} Lektionen bearbeitet
-            </p>
+            <h2 className="mt-1 font-serif text-2xl text-navy-800">
+              {allChaptersComplete ? "Alle Kapitel geschafft" : `Kapitel ${chapterIndex + 1} von ${chapters.length}: ${chapter?.title ?? ""}`}
+            </h2>
+            {cp && !allChaptersComplete && (
+              <p className="mt-1 text-navy-600">
+                {cp.lessonsDone} von {cp.lessonsTotal} Lektionen{cp.testPassed ? " · Kapiteltest bestanden" : ""}
+              </p>
+            )}
           </div>
           <Link href={`/stufen/${level.id}`} className="inline-flex items-center gap-1 font-semibold text-sage-700 hover:text-sage-800">
             Zur Stufe <ChevronRight className="h-4 w-4" />
           </Link>
         </div>
-        <ProgressBar className="mt-5" value={doneLessons.length} max={levelLessons.length} />
+        <div className="mt-5 flex gap-2">
+          {chapters.map((c) => {
+            const p = chapterProgress(c, state);
+            return (
+              <div key={c.id} className="flex-1">
+                <ProgressBar value={p.lessonsDone + (p.testPassed ? 1 : 0)} max={p.lessonsTotal + 1} />
+              </div>
+            );
+          })}
+        </div>
       </Panel>
+
+      <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <Milestone value={state.activityDays.length} label={state.activityDays.length === 1 ? "Lerntag" : "Lerntage"} />
+        <Milestone value={lessonsDoneTotal} label={lessonsDoneTotal === 1 ? "Lektion geschafft" : "Lektionen geschafft"} />
+        <Milestone value={wordsKnown} label="Wörter sitzen sicher" />
+        <Milestone value={chaptersDoneTotal} label={chaptersDoneTotal === 1 ? "Kapitel abgeschlossen" : "Kapitel abgeschlossen"} />
+      </div>
+    </div>
+  );
+}
+
+function Milestone({ value, label }: { value: number; label: string }) {
+  return (
+    <div className="rounded-2xl border border-cream-200 bg-white/70 px-5 py-4">
+      <p className="font-serif text-3xl text-navy-800">{value}</p>
+      <p className="text-[15px] leading-snug text-navy-600">{label}</p>
     </div>
   );
 }

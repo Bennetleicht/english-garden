@@ -41,6 +41,28 @@ export interface Lesson {
   exercises: Exercise[];
 }
 
+/* ---------------------------------------------------------------- Kapitel & Wortschatz */
+
+export interface VocabItem {
+  front: string; // Englisch – Wort oder kurze Wendung
+  back: string; // Deutsch
+  example?: string; // englischer Beispielsatz
+}
+
+/**
+ * Jede Stufe ist in 3 Kapitel gegliedert. Ein Kapitel bündelt mehrere Lektionen
+ * (in Lernreihenfolge) und einen thematischen Wortschatz.
+ */
+export interface Chapter {
+  id: string; // z. B. "l1-k1"
+  level: number;
+  title: string; // kurz, deutsch, z. B. "Ich & meine Familie"
+  description: string; // 1–2 deutsche Sätze: was man in diesem Kapitel lernt
+  lessons: string[]; // Lektions-slugs in Lernreihenfolge
+  vocabTitle: string; // Thema des Wortschatzes, deutsch
+  vocab: VocabItem[]; // ca. 30 Einträge
+}
+
 /* ---------------------------------------------------------------- Prüfungen */
 
 /** Eine Lücke in einem zusammenhängenden Text. */

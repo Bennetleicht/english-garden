@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Fraunces, Source_Sans_3 } from "next/font/google";
+import { AccountGate } from "@/components/AccountGate";
 import { AppShell } from "@/components/AppShell";
 import "./globals.css";
 
@@ -21,7 +22,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="de" className={`${serif.variable} ${sans.variable}`}>
       <body>
-        <AppShell>{children}</AppShell>
+        <AccountGate>
+          <AppShell>{children}</AppShell>
+        </AccountGate>
       </body>
     </html>
   );
