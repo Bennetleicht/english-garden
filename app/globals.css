@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-size: 17px;
+    -webkit-text-size-adjust: 100%;
+  }
+  @media (min-width: 640px) {
+    html {
+      font-size: 18px;
+    }
+  }
+  body {
+    @apply bg-cream-50 font-sans text-navy-700 antialiased;
+    background-image: radial-gradient(circle at 15% 0%, rgba(201, 216, 197, 0.35), transparent 45%),
+      radial-gradient(circle at 100% 30%, rgba(238, 229, 212, 0.6), transparent 40%);
+    background-attachment: fixed;
+  }
+  ::selection {
+    @apply bg-sage-200 text-navy-800;
+  }
+  input,
+  textarea,
+  select {
+    @apply text-navy-800;
+  }
+}
+
+@layer components {
+  .field {
+    @apply w-full rounded-xl border border-cream-300 bg-white px-4 py-3 text-lg placeholder:text-navy-500/50 focus:border-sage-400 focus:outline-none focus:ring-2 focus:ring-sage-200;
+  }
+  .chip {
+    @apply rounded-full border border-cream-300 bg-white px-4 py-2 text-[15px] text-navy-700 transition-colors hover:border-sage-300 hover:bg-sage-50;
+  }
+}
+
+/* Karten umdrehen */
+.flip {
+  perspective: 1400px;
+}
+.flip-inner {
+  transition: transform 0.55s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transform-style: preserve-3d;
+}
+.flip-inner.flipped {
+  transform: rotateY(180deg);
+}
+.flip-face {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.flip-back {
+  transform: rotateY(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flip-inner {
+    transition: none;
+  }
+}
