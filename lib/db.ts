@@ -7,7 +7,13 @@ import { neon } from "@neondatabase/serverless";
  */
 
 export function databaseUrl(): string | undefined {
-  return process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.NEON_DATABASE_URL || undefined;
+  return (
+    process.env.DATABASE_URL ||
+    process.env.POSTGRES_URL ||
+    process.env.STORAGE_URL || // Standard-Präfix der Vercel-Integration
+    process.env.NEON_DATABASE_URL ||
+    undefined
+  );
 }
 
 export function accountsEnabled(): boolean {
