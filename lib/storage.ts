@@ -97,6 +97,11 @@ export function replaceState(next: unknown) {
   updateState(() => migrate(next));
 }
 
+/** „Neu anfangen“: Lernfortschritt löschen, Name und Einstellungen behalten. */
+export function resetProgress() {
+  updateState((s) => ({ ...defaultState(), profile: { ...s.profile, placementDone: false, level: 1 }, profileUpdatedAt: Date.now(), resetAt: Date.now() }));
+}
+
 /** Löscht den lokalen Stand (z. B. beim Abmelden). */
 export function clearLocalState() {
   state = defaultState();

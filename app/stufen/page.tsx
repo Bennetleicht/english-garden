@@ -19,6 +19,22 @@ export default function LevelsPage() {
         zwischen den Stufen wechseln.
       </PageHeader>
 
+      <Link
+        href="/einstufung"
+        className="mb-6 flex items-center gap-4 rounded-2xl border border-sage-200 bg-sage-50 px-6 py-5 transition-colors hover:bg-sage-100"
+      >
+        <Compass className="h-7 w-7 shrink-0 text-sage-600" aria-hidden />
+        <span className="flex-1">
+          <span className="block font-semibold text-navy-800">Einstufungstest</span>
+          <span className="block text-navy-600">
+            {state.profile.placementDone
+              ? "Wo stehst du inzwischen? Mach den Test jederzeit noch einmal."
+              : "Finde in etwa 5 Minuten heraus, welche Stufe gerade zu dir passt."}
+          </span>
+        </span>
+        <ChevronRight className="h-5 w-5 text-sage-600" aria-hidden />
+      </Link>
+
       <div className="space-y-4">
         {LEVELS.map((level) => {
           const lessons = lessonsForLevel(level.id);
@@ -63,9 +79,7 @@ export default function LevelsPage() {
         })}
       </div>
 
-      <Link href="/einstufung" className="mt-8 inline-flex items-center gap-2 font-semibold text-sage-700 hover:text-sage-800">
-        <Compass className="h-5 w-5" /> {state.profile.placementDone ? "Einstufung wiederholen" : "Einstufungstest machen"}
-      </Link>
+
     </div>
   );
 }

@@ -54,6 +54,7 @@ export interface Profile {
 export interface AppState {
   version: 1;
   updatedAt: number; // ms – letzte Änderung
+  resetAt: number; // ms – wann zuletzt „Neu anfangen“ gewählt wurde (0 = nie)
   profile: Profile;
   profileUpdatedAt: number;
   activityDays: string[];
@@ -71,6 +72,7 @@ export function defaultState(): AppState {
   return {
     version: 1,
     updatedAt: 0,
+    resetAt: 0,
     profile: { name: "", level: 1, placementDone: false, voiceURI: "", speechRate: 0.92, autoSpeak: false },
     profileUpdatedAt: 0,
     activityDays: [],
@@ -98,6 +100,7 @@ export function migrate(raw: unknown): AppState {
     updatedAt: typeof r.updatedAt === "number" ? r.updatedAt : 0,
     profile: { ...base.profile, ...obj<Partial<Profile>>(r.profile) },
     profileUpdatedAt: typeof r.profileUpdatedAt === "number" ? r.profileUpdatedAt : 0,
+    resetAt: typeof r.resetAt === "number" ? r.resetAt : 0,
     activityDays: arr<string>(r.activityDays),
     cards: arr<Card>(r.cards),
     deletedCards: arr<string>(r.deletedCards),
@@ -145,6 +148,9 @@ const union = <T>(a: T[], b: T[]) => Array.from(new Set([...a, ...b]));
 export function mergeStates(aRaw: AppState, bRaw: AppState): AppState {
   const a = migrate(aRaw);
   const b = migrate(bRaw);
+  // Wurde auf einem Gerät „Neu anfangen“ gewählt, gilt nur der Stand ab diesem Zeitpunkt –
+  // ältere Stände anderer Geräte dürfen den alten Fortschritt nicht zurückbringen.
+  if (a.resetAt !== b.resetAt) return a.resetAt > b.resetAt ? a : b;
   const deleted = new Set(union(a.deletedCards, b.deletedCards));
 
   // Karten: gleiche ID oder gleicher englischer Begriff → die mit mehr Lernfortschritt behalten
@@ -170,6 +176,7 @@ export function mergeStates(aRaw: AppState, bRaw: AppState): AppState {
   return {
     version: 1,
     updatedAt: Math.max(a.updatedAt, b.updatedAt),
+    resetAt: a.resetAt,
     profile: b.profileUpdatedAt >= a.profileUpdatedAt ? b.profile : a.profile,
     profileUpdatedAt: Math.max(a.profileUpdatedAt, b.profileUpdatedAt),
     activityDays: union(a.activityDays, b.activityDays).sort(),

@@ -218,6 +218,12 @@ export default function HomePage() {
         <Milestone value={wordsKnown} label="Wörter sitzen sicher" />
         <Milestone value={chaptersDoneTotal} label={chaptersDoneTotal === 1 ? "Kapitel abgeschlossen" : "Kapitel abgeschlossen"} />
       </div>
+
+      {profile.placementDone && (
+        <Link href="/einstufung" className="mt-6 inline-flex items-center gap-2 font-semibold text-sage-700 hover:text-sage-800">
+          <Compass className="h-5 w-5" aria-hidden /> Einstufungstest wiederholen
+        </Link>
+      )}
     </div>
   );
 }

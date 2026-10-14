@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Cloud, Download, LogOut, Upload, Volume2 } from "lucide-react";
-import { Button, Loading, PageHeader, Panel } from "@/components/ui";
+import { Cloud, Compass, Download, LogOut, RotateCcw, Upload, Volume2 } from "lucide-react";
+import { Button, LinkButton, Loading, PageHeader, Panel } from "@/components/ui";
 import { getStatus, type ServerStatus } from "@/lib/api";
 import { LEVELS } from "@/lib/content/levels";
 import { today } from "@/lib/dates";
 import { loadEnglishVoices, pickDefaultVoice, speak } from "@/lib/speech";
-import { defaultState, exportState, replaceState, setProfile, useAppState } from "@/lib/storage";
+import { exportState, replaceState, resetProgress, setProfile, useAppState } from "@/lib/storage";
 import { pushNow, signOut, useSession, useSyncStatus } from "@/lib/sync";
 
 export default function SettingsPage() {
@@ -194,17 +194,38 @@ export default function SettingsPage() {
             KI-Sprachtrainer:{" "}
             {status === null ? "wird geprüft …" : status.ai ? `bereit (${status.provider === "gemini" ? "Google Gemini" : "Groq"}, kostenlos)` : "nicht eingerichtet"}
           </p>
+        </Panel>
+
+        <Panel>
+          <h2 className="font-serif text-xl text-navy-800">Einstufungstest</h2>
+          <p className="mt-2 text-navy-600">
+            16 kurze Fragen, etwa 5 Minuten. Du kannst ihn jederzeit wiederholen – zum Beispiel, um zu sehen, wie weit du schon gekommen bist.
+          </p>
+          <LinkButton href="/einstufung" variant="secondary" className="mt-5">
+            <Compass className="h-4 w-4" /> Einstufungstest machen
+          </LinkButton>
+        </Panel>
+
+        <Panel className="border-clay-100">
+          <h2 className="font-serif text-xl text-navy-800">Neu anfangen</h2>
+          <p className="mt-2 text-navy-600">
+            Löscht deinen gesamten Lernfortschritt{session ? " – auf allen Geräten" : ""}: Lektionen, Kapiteltests, Prüfungen, Vokabelkasten,
+            Tageszähler und Texte. {session ? "Dein Konto, dein Name und dein Passwort bleiben erhalten." : "Dein Name bleibt erhalten."}{" "}
+            Tipp: Lade vorher unter „Datensicherung“ eine Sicherung herunter.
+          </p>
           <Button
             variant="danger"
             className="mt-5"
             onClick={() => {
-              if (window.confirm("Wirklich den gesamten Lernstand löschen? Das kann nicht rückgängig gemacht werden.")) {
-                replaceState(defaultState());
-                if (session) void pushNow({ replace: true });
-              }
+              if (!window.confirm("Wirklich den gesamten Lernfortschritt löschen und neu anfangen?")) return;
+              if (!window.confirm("Bist du ganz sicher? Das kann nicht rückgängig gemacht werden.")) return;
+              resetProgress();
+              if (session) void pushNow();
+              setMessage("");
+              window.scrollTo(0, 0);
             }}
           >
-            Lernstand zurücksetzen
+            <RotateCcw className="h-4 w-4" /> Lernfortschritt zurücksetzen
           </Button>
         </Panel>
       </div>
