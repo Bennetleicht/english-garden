@@ -4,26 +4,38 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Check, ChevronRight, RotateCcw, X } from "lucide-react";
 import { matchesAny, normalizeAnswer, shuffleWords } from "@/lib/answers";
 import type { Exercise } from "@/lib/content/types";
+import { MistakeList, type Mistake } from "./MistakeList";
 import { Button, ProgressBar } from "./ui";
 
 /** Führt nacheinander durch alle Übungen einer Lektion. */
-export function ExerciseRunner({ exercises, onFinish }: { exercises: Exercise[]; onFinish: (correct: number, total: number) => void }) {
+export function ExerciseRunner({
+  exercises,
+  onFinish,
+  showSummary = true,
+}: {
+  exercises: Exercise[];
+  onFinish: (correct: number, total: number, mistakes: Mistake[]) => void;
+  /** Eigene Abschlussansicht mit Fehlerübersicht anzeigen (beim Kapiteltest übernimmt das die Seite). */
+  showSummary?: boolean;
+}) {
   const [index, setIndex] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
+  const [mistakes, setMistakes] = useState<Mistake[]>([]);
   const [result, setResult] = useState<null | boolean>(null);
   const [done, setDone] = useState(false);
 
   const exercise = exercises[index];
 
-  const handleResult = (ok: boolean) => {
+  const handleResult = (ok: boolean, given: string) => {
     setResult(ok);
     if (ok) setCorrectCount((c) => c + 1);
+    else setMistakes((m) => [...m, toMistake(exercise, given)]);
   };
 
   const next = () => {
     if (index + 1 >= exercises.length) {
       setDone(true);
-      onFinish(correctCount, exercises.length);
+      onFinish(correctCount, exercises.length, mistakes);
       return;
     }
     setIndex((i) => i + 1);
@@ -33,9 +45,12 @@ export function ExerciseRunner({ exercises, onFinish }: { exercises: Exercise[];
   const restart = () => {
     setIndex(0);
     setCorrectCount(0);
+    setMistakes([]);
     setResult(null);
     setDone(false);
   };
+
+  if (done && !showSummary) return null;
 
   if (done) {
     const all = correctCount === exercises.length;
@@ -54,6 +69,11 @@ export function ExerciseRunner({ exercises, onFinish }: { exercises: Exercise[];
         <Button variant="secondary" className="mt-6" onClick={restart}>
           <RotateCcw className="h-4 w-4" /> Noch einmal üben
         </Button>
+        {mistakes.length > 0 && (
+          <div className="mt-8">
+            <MistakeList mistakes={mistakes} />
+          </div>
+        )}
       </div>
     );
   }
@@ -96,6 +116,11 @@ export function ExerciseRunner({ exercises, onFinish }: { exercises: Exercise[];
   );
 }
 
+function toMistake(e: Exercise, given: string): Mistake {
+  const prompt = e.type === "order" ? `Satzbau: „${e.translation}“` : e.sentence.replace("___", "_____");
+  return { prompt, given, solution: solutionText(e), explanation: e.explanation };
+}
+
 function solutionText(e: Exercise): string {
   if (e.type === "gap") return e.answers[0];
   if (e.type === "choice") return e.options[e.answer];
@@ -120,12 +145,12 @@ function GapExercise({
 }: {
   exercise: Extract<Exercise, { type: "gap" }>;
   locked: boolean;
-  onResult: (ok: boolean) => void;
+  onResult: (ok: boolean, given: string) => void;
 }) {
   const [value, setValue] = useState("");
   const check = () => {
     if (!value.trim() || locked) return;
-    onResult(matchesAny(value, exercise.answers));
+    onResult(matchesAny(value, exercise.answers), value.trim());
   };
 
   return (
@@ -166,7 +191,7 @@ function ChoiceExercise({
 }: {
   exercise: Extract<Exercise, { type: "choice" }>;
   locked: boolean;
-  onResult: (ok: boolean) => void;
+  onResult: (ok: boolean, given: string) => void;
 }) {
   const [picked, setPicked] = useState<number | null>(null);
   const hasGap = exercise.sentence.includes("___");
@@ -198,7 +223,7 @@ function ChoiceExercise({
               disabled={locked}
               onClick={() => {
                 setPicked(i);
-                onResult(isAnswer);
+                onResult(isAnswer, option);
               }}
               className={`rounded-xl border px-5 py-3.5 text-left text-lg transition-colors ${style}`}
             >
@@ -218,7 +243,7 @@ function OrderExercise({
 }: {
   exercise: Extract<Exercise, { type: "order" }>;
   locked: boolean;
-  onResult: (ok: boolean) => void;
+  onResult: (ok: boolean, given: string) => void;
 }) {
   // Wörter mit Index, damit doppelte Wörter (z. B. "you … you") eindeutig bleiben
   const [pool, setPool] = useState<{ word: string; id: number }[]>([]);
@@ -239,7 +264,10 @@ function OrderExercise({
     setChosen((c) => c.filter((x) => x.id !== item.id));
     setPool((p) => [...p, item]);
   };
-  const check = () => onResult(normalizeAnswer(chosen.map((c) => c.word).join(" ")) === normalizeAnswer(exercise.words.join(" ")));
+  const check = () => {
+    const given = chosen.map((c) => c.word).join(" ");
+    onResult(normalizeAnswer(given) === normalizeAnswer(exercise.words.join(" ")), given);
+  };
 
   return (
     <div>

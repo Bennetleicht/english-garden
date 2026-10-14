@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronRight } from "lucide-react";
+import { MistakeList } from "@/components/MistakeList";
 import { Button, PageHeader, Panel, ProgressBar } from "@/components/ui";
 import { getLevel } from "@/lib/content/levels";
 import { PLACEMENT, recommendLevel } from "@/lib/content/placement";
@@ -34,6 +35,17 @@ export default function PlacementPage() {
     });
     const total = Object.values(correctByLevel).reduce((a, b) => a + b, 0);
     const recommended = getLevel(recommendLevel(correctByLevel));
+    const mistakes = PLACEMENT.flatMap((q, i) =>
+      answers[i] === q.answer
+        ? []
+        : [
+            {
+              prompt: q.sentence.replace("___", "_____"),
+              given: answers[i] >= 0 ? q.options[answers[i]] : "Weiß ich nicht",
+              solution: q.options[q.answer],
+            },
+          ],
+    );
 
     return (
       <div className="animate-fadeIn">
@@ -64,6 +76,11 @@ export default function PlacementPage() {
             </Button>
           </div>
         </Panel>
+        {mistakes.length > 0 && (
+          <div className="mt-8">
+            <MistakeList mistakes={mistakes} title="Diese Fragen waren noch schwierig" />
+          </div>
+        )}
       </div>
     );
   }

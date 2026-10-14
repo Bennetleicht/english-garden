@@ -5,10 +5,12 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Award, ChevronRight, RotateCcw } from "lucide-react";
 import { ExerciseRunner } from "@/components/ExerciseRunner";
+import { MistakeList } from "@/components/MistakeList";
 import { Button, LinkButton, Loading, PageHeader, Panel } from "@/components/ui";
 import { shuffle } from "@/lib/answers";
 import { CHAPTER_PASS_PERCENT, chaptersForLevel, getChapter } from "@/lib/content/chapters";
 import { getLesson } from "@/lib/content/grammar";
+import type { Mistake } from "@/components/MistakeList";
 import type { Exercise } from "@/lib/content/types";
 import { markActivity, saveChapterTest, useAppState } from "@/lib/storage";
 
@@ -20,7 +22,7 @@ export default function ChapterTestPage() {
   const state = useAppState();
   const chapter = getChapter(params.kid);
   const [exercises, setExercises] = useState<Exercise[] | null>(null);
-  const [result, setResult] = useState<{ percent: number } | null>(null);
+  const [result, setResult] = useState<{ percent: number; mistakes: Mistake[] } | null>(null);
   const [round, setRound] = useState(0);
 
   useEffect(() => {
@@ -59,11 +61,12 @@ export default function ChapterTestPage() {
           <ExerciseRunner
             key={round}
             exercises={exercises}
-            onFinish={(correct, total) => {
+            showSummary={false}
+            onFinish={(correct, total, mistakes) => {
               const percent = Math.round((correct / total) * 100);
               saveChapterTest(chapter.id, percent, percent >= CHAPTER_PASS_PERCENT);
               markActivity();
-              setResult({ percent });
+              setResult({ percent, mistakes });
             }}
           />
         </Panel>
@@ -94,6 +97,11 @@ export default function ChapterTestPage() {
             </Button>
           </div>
         </Panel>
+      )}
+      {result !== null && result.mistakes.length > 0 && (
+        <div className="mt-6">
+          <MistakeList mistakes={result.mistakes} />
+        </div>
       )}
     </div>
   );
