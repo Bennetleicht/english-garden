@@ -101,27 +101,40 @@ export default function WritingPage() {
   if (feedback) {
     return (
       <div className="animate-fadeIn">
-        <PageHeader eyebrow="Feedback" title="Schön geschrieben.">
+        <PageHeader eyebrow="Feedback" title={feedbackTitle(feedback.errors.length)}>
           {task}
         </PageHeader>
 
         <div className="space-y-6">
-          {feedback.praise && (
-            <Panel className="flex gap-4">
-              <Heart className="mt-1 h-5 w-5 shrink-0 text-clay-400" />
-              <p className="text-lg leading-relaxed text-navy-700">{feedback.praise}</p>
-            </Panel>
+          <Panel>
+            <p className="font-semibold text-navy-800">
+              {feedback.errors.length === 0
+                ? "Keine Fehler gefunden."
+                : `${feedback.errors.length} ${feedback.errors.length === 1 ? "Fehler" : "Fehler"} gefunden`}
+            </p>
+            {feedback.overall && <p className="mt-1 text-lg leading-relaxed text-navy-700">{feedback.overall}</p>}
+            {feedback.praise && (
+              <p className="mt-3 flex gap-3 text-lg leading-relaxed text-navy-700">
+                <Heart className="mt-1.5 h-5 w-5 shrink-0 text-clay-400" />
+                {feedback.praise}
+              </p>
+            )}
+          </Panel>
+
+          {feedback.errors.length > 0 && (
+            <section>
+              <h2 className="font-serif text-xl text-navy-800">Diese Fehler solltest du verbessern</h2>
+              <p className="mb-3 text-navy-600">Das ist im Englischen falsch – lies dir die Regel jeweils kurz durch.</p>
+              <CorrectionList corrections={feedback.errors} source="schreiben" variant="error" />
+            </section>
           )}
 
-          {feedback.corrections.length > 0 ? (
+          {feedback.improvements.length > 0 && (
             <section>
-              <h2 className="mb-3 font-serif text-xl text-navy-800">Das kannst du noch verbessern</h2>
-              <CorrectionList corrections={feedback.corrections} source="schreiben" />
+              <h2 className="font-serif text-xl text-navy-800">Das könntest du noch schöner sagen</h2>
+              <p className="mb-3 text-navy-600">Nicht falsch – aber so klingt es natürlicher.</p>
+              <CorrectionList corrections={feedback.improvements} source="schreiben" variant="style" />
             </section>
-          ) : (
-            <Panel>
-              <p className="text-lg text-sage-800">Keine Fehler gefunden – ausgezeichnet!</p>
-            </Panel>
           )}
 
           <Panel>
@@ -211,4 +224,12 @@ export default function WritingPage() {
       </Panel>
     </div>
   );
+}
+
+/** Ehrliche, aber ermutigende Überschrift je nach Anzahl der Fehler. */
+function feedbackTitle(errors: number): string {
+  if (errors === 0) return "Ausgezeichnet – fehlerfrei.";
+  if (errors <= 2) return "Gut gemacht – fast fehlerfrei.";
+  if (errors <= 5) return "Guter Text – mit ein paar Fehlern.";
+  return "Mutig geschrieben – jetzt die Fehler angehen.";
 }

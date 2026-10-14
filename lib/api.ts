@@ -110,9 +110,11 @@ export interface ChatReply {
 }
 
 export interface WritingFeedback {
+  overall: string;
   praise: string;
   corrected_text: string;
-  corrections: Correction[];
+  errors: Correction[]; // echte Fehler
+  improvements: Correction[]; // korrekt, aber schöner formulierbar
   tips: string[];
   new_words: NewWord[];
   encouragement: string;
