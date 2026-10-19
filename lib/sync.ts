@@ -18,6 +18,7 @@ const OWNER_KEY = "english-garden-owner";
 export interface Session {
   token: string;
   name: string;
+  email?: string | null;
 }
 
 export type SyncStatus = "idle" | "syncing" | "saved" | "offline";
@@ -94,26 +95,72 @@ export function unownedLocalProgress(): AppState | null {
 
 /* ---------- Anmelden / Abmelden ---------- */
 
-export async function signIn(opts: { mode: "login" | "register"; name: string; password: string; takeLocal: boolean }) {
+export async function signIn(opts: {
+  mode: "login" | "register";
+  name?: string;
+  email: string;
+  password: string;
+  takeLocal: boolean;
+}) {
   const local = getState();
   const owner = localOwner();
-  // Lokalen Fortschritt nur mitnehmen, wenn er niemandem bzw. genau dieser Person gehört
-  const includeLocal = hasProgress(local) && (owner ? owner === opts.name.trim().toLowerCase() : opts.takeLocal);
+  // Fortschritt ohne Besitzer (aus der Zeit vor den Konten) nur auf Wunsch mitnehmen
+  const includeLocal = hasProgress(local) && !owner && opts.takeLocal;
 
   const res = await request("/api/account", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: opts.mode, name: opts.name, password: opts.password, state: includeLocal ? local : undefined }),
+    body: JSON.stringify({
+      action: opts.mode,
+      name: opts.name,
+      email: opts.email,
+      password: opts.password,
+      state: includeLocal ? local : undefined,
+    }),
   });
-  const data = (await res.json().catch(() => ({}))) as { token?: string; name?: string; state?: unknown; error?: string };
+  const data = (await res.json().catch(() => ({}))) as {
+    token?: string;
+    name?: string;
+    email?: string | null;
+    state?: unknown;
+    error?: string;
+  };
   if (!res.ok || !data.token) {
     throw new Error(data.error === "access" ? "Der Zugangscode stimmt leider nicht." : data.error || "Das hat nicht geklappt.");
   }
-  if (!includeLocal) clearLocalState();
-  applyRemoteState(migrate(data.state));
-  setLocalOwner(data.name ?? opts.name);
-  writeSession({ token: data.token, name: data.name ?? opts.name });
+  const name = data.name ?? opts.name ?? "";
+  const remote = migrate(data.state);
+  // Gehört der lokale Stand genau dieser Person (z. B. offline gelernt)? Dann zusammenführen statt verwerfen.
+  const sameOwner = Boolean(owner) && [data.email, name].some((x) => x && x.trim().toLowerCase() === owner);
+  if (sameOwner) applyRemoteState(mergeStates(remote, local));
+  else {
+    if (!includeLocal) clearLocalState();
+    applyRemoteState(remote);
+  }
+  setLocalOwner(data.email || name);
+  writeSession({ token: data.token, name, email: data.email ?? null });
   startSync();
+  if (sameOwner) void pushNow();
+}
+
+/** E-Mail hinterlegen/ändern bzw. Passwort ändern (Einstellungen). */
+export async function updateAccount(body: { email?: string; currentPassword?: string; newPassword?: string }) {
+  const res = await request("/api/account", { method: "PATCH", headers: authHeaders(), body: JSON.stringify(body) });
+  const data = (await res.json().catch(() => ({}))) as { error?: string; email?: string };
+  if (!res.ok) throw new Error(data.error === "session" ? "Bitte melde dich neu an." : data.error || "Das hat nicht geklappt.");
+  const current = readSession();
+  if (data.email && current) {
+    writeSession({ ...current, email: data.email });
+    setLocalOwner(data.email);
+  }
+}
+
+/** Meldet die gerade geöffnete Seite (für die Entwickler-Übersicht). */
+export function ping(path: string) {
+  if (!readSession()) return;
+  void request("/api/account/ping", { method: "POST", headers: authHeaders(), body: JSON.stringify({ path }), keepalive: true }).catch(
+    () => undefined,
+  );
 }
 
 export async function signOut() {

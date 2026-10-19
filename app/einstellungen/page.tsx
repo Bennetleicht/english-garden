@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Cloud, Compass, Download, LogOut, RotateCcw, Upload, Volume2 } from "lucide-react";
+import { AccountSettings } from "@/components/AccountSettings";
 import { Button, LinkButton, Loading, PageHeader, Panel } from "@/components/ui";
 import { getStatus, type ServerStatus } from "@/lib/api";
 import { LEVELS } from "@/lib/content/levels";
@@ -69,6 +70,7 @@ export default function SettingsPage() {
                   ? "Wird gespeichert …"
                   : "Dein Fortschritt ist auf allen Geräten gespeichert."}
             </p>
+            <AccountSettings session={session} />
             <Button
               variant="secondary"
               className="mt-5"

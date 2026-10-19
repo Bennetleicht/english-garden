@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Fragment, useEffect, useState } from "react";
-import { ArrowLeft, ArrowRight, Award, Check, ChevronRight, RotateCcw, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Award, BookOpenCheck, Check, ChevronRight, RotateCcw, X } from "lucide-react";
 import { matchesAny, normalizeAnswer, shuffle, shuffleWords } from "@/lib/answers";
 import { uncoveredLessons } from "@/lib/content/exams";
 import { getLesson } from "@/lib/content/grammar";
@@ -40,6 +40,7 @@ export function ExamRunner({ exam, deck }: { exam: Exam; deck: VocabItem[] }) {
   const [vocabQuestions, setVocabQuestions] = useState<VocabQuestion[]>([]);
   const [grammarItems, setGrammarItems] = useState<ExamExercise[]>(exam.grammar);
   const [results, setResults] = useState<Scored[] | null>(null);
+  const [reviewing, setReviewing] = useState(false);
 
   // Wortschatzfragen aus dem Startwortschatz der Stufe – zufällig, deshalb erst im Browser erzeugen
   useEffect(() => {
@@ -65,7 +66,7 @@ export function ExamRunner({ exam, deck }: { exam: Exam; deck: VocabItem[] }) {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [part, results]);
+  }, [part, results, reviewing]);
 
   const finish = () => {
     const scored: Scored[] = [];
@@ -124,10 +125,22 @@ export function ExamRunner({ exam, deck }: { exam: Exam; deck: VocabItem[] }) {
     setReading({});
     setVocab({});
     setResults(null);
+    setReviewing(false);
     setPart(0);
   };
 
-  if (results) return <ExamResults level={exam.level} results={results} onRestart={restart} />;
+  if (results && reviewing) {
+    return (
+      <ExamReview
+        exam={exam}
+        grammarItems={grammarItems}
+        vocabQuestions={vocabQuestions}
+        answers={{ cloze, grammar, reading, vocab }}
+        onBack={() => setReviewing(false)}
+      />
+    );
+  }
+  if (results) return <ExamResults level={exam.level} results={results} onRestart={restart} onReview={() => setReviewing(true)} />;
 
   return (
     <div>
@@ -476,7 +489,17 @@ function categoryLabel(category: string): string {
   return getLesson(category)?.title ?? category;
 }
 
-function ExamResults({ level, results, onRestart }: { level: number; results: Scored[]; onRestart: () => void }) {
+function ExamResults({
+  level,
+  results,
+  onRestart,
+  onReview,
+}: {
+  level: number;
+  results: Scored[];
+  onRestart: () => void;
+  onReview: () => void;
+}) {
   const correct = results.filter((r) => r.correct).length;
   const percent = Math.round((correct / results.length) * 100);
   const passed = percent >= PASS_PERCENT;
@@ -512,6 +535,9 @@ function ExamResults({ level, results, onRestart }: { level: number; results: Sc
               Weiter zu Stufe {level + 1} <ChevronRight className="h-4 w-4" />
             </LinkButton>
           )}
+          <Button variant={passed && level < 4 ? "secondary" : "primary"} onClick={onReview}>
+            <BookOpenCheck className="h-4 w-4" /> Prüfung mit Lösungen durchgehen
+          </Button>
           <Button variant="secondary" onClick={onRestart}>
             <RotateCcw className="h-4 w-4" /> Prüfung wiederholen
           </Button>
@@ -569,6 +595,253 @@ function ExamResults({ level, results, onRestart }: { level: number; results: Sc
           </ul>
         </Panel>
       )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ Lösungsmodus */
+
+interface ExamAnswers {
+  cloze: Record<number, string>;
+  grammar: Record<number, string>;
+  reading: Record<number, number>;
+  vocab: Record<number, number>;
+}
+
+/** Eigene Antwort: grün, wenn richtig – sonst rot durchgestrichen und daneben die Lösung in Grün. */
+function AnswerMark({ given, solution, correct }: { given: string; solution: string; correct: boolean }) {
+  if (correct) {
+    return (
+      <span className="mx-0.5 inline-flex items-center gap-1 rounded-md bg-sage-100 px-1.5 py-0.5 font-semibold text-sage-800">
+        <Check className="h-3.5 w-3.5" aria-hidden /> {given}
+      </span>
+    );
+  }
+  return (
+    <span className="mx-0.5 inline-flex flex-wrap items-center gap-1">
+      <span className="rounded-md bg-clay-50 px-1.5 py-0.5 text-clay-600 line-through decoration-clay-400/70">{given || "–"}</span>
+      <span className="rounded-md bg-sage-100 px-1.5 py-0.5 font-semibold text-sage-800">{solution}</span>
+    </span>
+  );
+}
+
+function Verdict({ correct }: { correct: boolean }) {
+  return correct ? (
+    <span className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-sage-700">
+      <Check className="h-4 w-4" /> richtig
+    </span>
+  ) : (
+    <span className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-clay-600">
+      <X className="h-4 w-4" /> falsch
+    </span>
+  );
+}
+
+function optionStyle(isAnswer: boolean, isChosen: boolean): string {
+  if (isAnswer) return "border-sage-400 bg-sage-50 text-sage-800 font-semibold";
+  if (isChosen) return "border-clay-400 bg-clay-50 text-clay-600 line-through decoration-clay-400/60";
+  return "border-cream-200 bg-white text-navy-500";
+}
+
+function ExamReview({
+  exam,
+  grammarItems,
+  vocabQuestions,
+  answers,
+  onBack,
+}: {
+  exam: Exam;
+  grammarItems: ExamExercise[];
+  vocabQuestions: VocabQuestion[];
+  answers: ExamAnswers;
+  onBack: () => void;
+}) {
+  const [part, setPart] = useState(0);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [part]);
+
+  const clozeResult = exam.cloze.gaps.map((gap, i) => {
+    const raw = answers.cloze[i] ?? "";
+    const given = gap.options ? (raw !== "" ? gap.options[Number(raw)] : "") : raw;
+    const solution = gap.options ? gap.options[gap.answer ?? 0] : (gap.answers ?? [])[0] ?? "";
+    const correct = gap.options ? raw !== "" && Number(raw) === gap.answer : matchesAny(raw, gap.answers ?? []);
+    return { given, solution, correct, explanation: gap.explanation };
+  });
+
+  return (
+    <div className="animate-fadeIn">
+      <div className="mb-6 rounded-2xl border border-sage-200 bg-sage-50 px-5 py-4 text-navy-700">
+        <p className="font-semibold text-navy-800">Lösungsmodus</p>
+        <p>Grün = richtig. Rot durchgestrichen = deine Antwort, daneben in Grün die Lösung. Darunter steht jeweils die Erklärung.</p>
+      </div>
+
+      <div className="mb-6 flex flex-wrap gap-2">
+        {PARTS.map((p, i) => (
+          <button
+            key={p}
+            type="button"
+            onClick={() => setPart(i)}
+            className={`rounded-full px-4 py-2 text-[15px] transition-colors ${
+              i === part ? "bg-sage-600 font-semibold text-white" : "border border-cream-300 bg-white text-navy-700 hover:border-sage-300"
+            }`}
+          >
+            Teil {i + 1}: {p}
+          </button>
+        ))}
+      </div>
+
+      <div key={part} className="animate-fadeIn">
+        {part === 0 && (
+          <div>
+            <PartHeader title="Teil 1: Zusammenhängender Text" intro={exam.cloze.intro} />
+            <Panel>
+              <h3 className="mb-4 font-serif text-2xl text-navy-800">{exam.cloze.title}</h3>
+              <div className="space-y-5 text-lg leading-[2.4] text-navy-800">
+                {exam.cloze.text.split(/\n\n+/).map((paragraph, p) => (
+                  <p key={p}>
+                    {paragraph.split(/\{(\d+)\}/).map((piece, k) => {
+                      if (k % 2 === 0) return <Fragment key={k}>{piece}</Fragment>;
+                      const i = Number(piece) - 1;
+                      const r = clozeResult[i];
+                      if (!r) return null;
+                      return (
+                        <span key={k}>
+                          <sup className="mr-0.5 text-xs text-navy-500">{i + 1}</sup>
+                          <AnswerMark given={r.given} solution={r.solution} correct={r.correct} />
+                        </span>
+                      );
+                    })}
+                  </p>
+                ))}
+              </div>
+            </Panel>
+            <ol className="mt-6 space-y-3">
+              {clozeResult.map((r, i) => (
+                <li key={i} className="rounded-xl border border-cream-200 bg-white/80 px-5 py-3">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="font-semibold text-navy-800">Lücke {i + 1}</span>
+                    <Verdict correct={r.correct} />
+                    {!r.correct && <span className="text-navy-700">Lösung: {r.solution}</span>}
+                  </div>
+                  {r.explanation && <p className="mt-1 text-navy-600">{r.explanation}</p>}
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+
+        {part === 1 && (
+          <div>
+            <PartHeader title="Teil 2: Grammatik" intro="Alle Aufgaben mit deiner Antwort und der Lösung." />
+            <ol className="space-y-4">
+              {grammarItems.map((ex, i) => {
+                const r = scoreExercise(ex, answers.grammar[i] ?? "");
+                const [before, after] = ex.type === "order" ? ["", ""] : ex.sentence.split("___");
+                return (
+                  <li key={i} className={`rounded-2xl border bg-white/80 p-5 shadow-soft ${r.correct ? "border-sage-200" : "border-clay-100"}`}>
+                    <div className="mb-2 flex items-center justify-between gap-3">
+                      <span className="text-sm font-semibold text-navy-500">{i + 1}.</span>
+                      <Verdict correct={r.correct} />
+                    </div>
+                    {ex.type === "order" ? (
+                      <>
+                        <p className="text-lg text-navy-600">Bilde den Satz: „{ex.translation}“</p>
+                        <p className="mt-2 text-lg">
+                          <AnswerMark given={r.given} solution={r.solution} correct={r.correct} />
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-lg leading-loose text-navy-800">
+                        {before}
+                        <AnswerMark given={r.given} solution={r.solution} correct={r.correct} />
+                        {after ?? ""}
+                      </p>
+                    )}
+                    {r.explanation && <p className="mt-2 text-navy-600">{r.explanation}</p>}
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+        )}
+
+        {part === 2 && (
+          <div>
+            <PartHeader title="Teil 3: Leseverstehen" intro="Der Text und die Fragen mit den richtigen Antworten." />
+            <Panel>
+              <h3 className="mb-4 font-serif text-2xl text-navy-800">{exam.reading.title}</h3>
+              <div className="space-y-4 text-lg leading-relaxed text-navy-800">
+                {exam.reading.text.split(/\n\n+/).map((p, i) => (
+                  <p key={i}>{p}</p>
+                ))}
+              </div>
+            </Panel>
+            <ol className="mt-6 space-y-4">
+              {exam.reading.questions.map((q, i) => (
+                <li key={i} className="rounded-2xl border border-cream-200 bg-white/80 p-5 shadow-soft">
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-lg font-semibold text-navy-800">
+                      {i + 1}. {q.question}
+                    </p>
+                    <Verdict correct={answers.reading[i] === q.answer} />
+                  </div>
+                  <div className="mt-3 grid gap-2">
+                    {q.options.map((o, oi) => (
+                      <div key={oi} className={`rounded-xl border px-4 py-2.5 text-lg ${optionStyle(oi === q.answer, answers.reading[i] === oi)}`}>
+                        {o}
+                      </div>
+                    ))}
+                  </div>
+                  <p className="mt-2 text-navy-600">{q.explanation}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+
+        {part === 3 && (
+          <div>
+            <PartHeader title="Teil 4: Wortschatz" intro="Die Wörter mit ihrer richtigen Bedeutung." />
+            <ol className="grid gap-4 sm:grid-cols-2">
+              {vocabQuestions.map((q, i) => (
+                <li key={i} className="rounded-2xl border border-cream-200 bg-white/80 p-5 shadow-soft">
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="font-serif text-xl text-navy-800">{q.front}</p>
+                    <Verdict correct={answers.vocab[i] === q.answer} />
+                  </div>
+                  <div className="mt-3 grid gap-2">
+                    {q.options.map((o, oi) => (
+                      <div key={oi} className={`rounded-xl border px-4 py-2 ${optionStyle(oi === q.answer, answers.vocab[i] === oi)}`}>
+                        {o}
+                      </div>
+                    ))}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
+        {part > 0 ? (
+          <Button variant="ghost" onClick={() => setPart((p) => p - 1)}>
+            <ArrowLeft className="h-4 w-4" /> Teil {part}
+          </Button>
+        ) : (
+          <Button variant="ghost" onClick={onBack}>
+            <ArrowLeft className="h-4 w-4" /> Zur Auswertung
+          </Button>
+        )}
+        {part < PARTS.length - 1 ? (
+          <Button onClick={() => setPart((p) => p + 1)}>
+            Weiter zu Teil {part + 2} <ArrowRight className="h-4 w-4" />
+          </Button>
+        ) : (
+          <Button onClick={onBack}>Zur Auswertung</Button>
+        )}
+      </div>
     </div>
   );
 }

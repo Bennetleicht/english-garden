@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Home, Layers, MessageCircle, PenLine, Settings, Sprout } from "lucide-react";
+import { BookOpen, Home, Layers, MessageCircle, PenLine, Repeat, Settings, Sprout } from "lucide-react";
 import type { ReactNode } from "react";
 import { StreakBadge } from "./StreakBadge";
 
@@ -11,6 +11,8 @@ const NAV = [
   { href: "/stufen", label: "Lernweg", icon: Sprout },
   { href: "/grammatik", label: "Grammatik", icon: BookOpen },
   { href: "/vokabeln", label: "Vokabeln", icon: Layers },
+  // Auf dem Handy nicht in der unteren Leiste (Platz) – dort über Vokabeln/Grammatik erreichbar
+  { href: "/verben", label: "Verben", icon: Repeat, desktopOnly: true },
   { href: "/gespraech", label: "Gespräch", icon: MessageCircle },
   { href: "/schreiben", label: "Schreiben", icon: PenLine },
 ];
@@ -21,6 +23,9 @@ function isActive(pathname: string, href: string) {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+
+  // Entwickler-Übersicht ohne App-Rahmen
+  if (pathname.startsWith("/admin")) return <main className="min-h-screen px-5 py-10 sm:px-10">{children}</main>;
 
   return (
     <div className="min-h-screen lg:flex">
@@ -80,7 +85,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Navigation unten (Mobil) */}
       <nav className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-6 border-t border-cream-200 bg-cream-50/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
-        {NAV.map(({ href, label, icon: Icon }) => (
+        {NAV.filter((n) => !n.desktopOnly).map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
             href={href}

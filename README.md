@@ -22,8 +22,9 @@ nur klare Erklärungen, ein kluger Vokabelkasten und ein geduldiger KI-Gespräch
 
 ## Was die App kann
 
-**Eigene Konten** (z. B. für Mama und Papa): Name + Passwort, einmal pro Gerät anmelden – der Fortschritt ist auf Handy,
-Tablet und Computer gleich.
+**Eigene Konten** (z. B. für Mama und Papa): einmal mit Vorname, E-Mail und Passwort registrieren, danach auf jedem Gerät
+mit E-Mail und Passwort anmelden – der Fortschritt ist auf Handy, Tablet und Computer gleich. In den Einstellungen lassen
+sich E-Mail und Passwort ändern.
 
 **Lernweg in 4 Stufen** (angelehnt an A1–B2) mit Einstufungstest. Jede Stufe hat **3 Kapitel** mit je 3–4 Lektionen,
 30 Vokabeln und einem **Kapiteltest** – und am Ende eine **Abschlussprüfung**:
@@ -38,6 +39,12 @@ Tablet und Computer gleich.
 **Vokabeltrainer** nach dem Anki-Prinzip (Spaced Repetition): Karte ansehen → aufdecken → „Gewusst“ / „Nicht gewusst“.
 Schwierige Karten kommen früher und öfter wieder. Jedes Kapitel bringt 30 thematische Vokabeln mit (insgesamt 360). Freitag bis Sonntag erscheint ein
 **Wochenrückblick** mit Statistik und einer Wiederholung aller Wörter der Woche.
+
+**Unregelmäßige Verben**: rund 100 Verben nach Mustern geordnet (cut – cut – cut, buy – bought – bought …), zum Anhören und
+mit einem Trainer im Karteikasten-Prinzip: Verben, die noch nicht sitzen, kommen öfter wieder.
+
+**Abschlussprüfungen mit Lösungsmodus**: Nach der Auswertung lässt sich die ganze Prüfung Teil für Teil mit den eigenen
+Antworten und den Lösungen durchgehen.
 
 **KI-Sprachtrainer**: Themen wählen (oder „Überrasch mich“), sprechen oder tippen. Fehler werden freundlich als
 „Vorher → Besser“ mit kurzer Erklärung auf Deutsch angezeigt, das Gespräch läuft natürlich weiter. Antworten können
@@ -121,11 +128,23 @@ Damit jeder ein eigenes Konto hat und der Fortschritt auf allen Geräten gleich 
    (`DATABASE_URL`) automatisch ein.
 4. **Deployments** → oberster Eintrag → „⋯ → **Redeploy**“
 
-Beim nächsten Öffnen fragt die App „Wer lernt heute?“. Jeder legt einmal ein Konto mit Vorname und Passwort an.
+Beim nächsten Öffnen erscheint die Anmeldung. Jeder registriert sich einmal mit Vorname, E-Mail und Passwort.
 Fortschritt, der vorher schon auf einem Gerät gespeichert war, kann dabei übernommen werden.
 
 Die Tabelle legt die App beim ersten Zugriff selbst an. Ohne Datenbank funktioniert die App weiterhin – dann ohne Konten,
 nur auf dem jeweiligen Gerät.
+
+### Schritt 6: Verwaltung für dich als Entwickler (optional)
+
+Unter `https://deine-adresse.vercel.app/admin` siehst du, wer gerade online ist, wer wann wie lange auf der Website war
+(mit den besuchten Seiten) und wie weit jede Person ist. Dort kannst du auch ein vergessenes Passwort zurücksetzen.
+
+1. Vercel → Projekt → **Settings → Environment Variables** → neue Variable `ADMIN_PASSWORD` mit einem eigenen,
+   sicheren Passwort
+2. **Redeploy**
+
+Die Seite ist nicht verlinkt und für Suchmaschinen gesperrt. Aufgezeichnet wird nur, solange jemand angemeldet ist und die
+App offen hat (etwa einmal pro Minute die aktuelle Seite); Einträge älter als 180 Tage werden automatisch gelöscht.
 
 ### Zugangscode (empfohlen)
 
@@ -189,7 +208,9 @@ app/
   api/chat/                 KI-Gespräch (inkl. Korrekturen)
   api/feedback/             KI-Feedback für Texte
   api/transcribe/           Spracheingabe-Rückfall über Groq Whisper (optional)
-  api/account/              Anmelden, Konto anlegen, Lernstand laden/speichern
+  api/account/              Registrieren, Anmelden, E-Mail/Passwort ändern, Lernstand laden/speichern, Besuche melden
+  api/admin/, admin/        Entwickler-Übersicht (Besuche, Konten, Passwort zurücksetzen)
+  verben/                   Unregelmäßige Verben + Trainer
   api/status/               Welche Dienste sind eingerichtet?
 components/                 Wiederverwendbare Bausteine (Karteikarte, Übungen, Mikrofon …)
 lib/
@@ -233,3 +254,5 @@ Alle Inhalte sind einfache TypeScript-Dateien in `lib/content/`:
   Gemini-Kontingent kann Google Eingaben zur Verbesserung seiner Dienste verwenden – also im Gespräch besser keine
   sensiblen persönlichen Daten erzählen.
 - Die Spracherkennung in Chrome nutzt Googles Server, in Safari die von Apple.
+- Mit Konten wird gespeichert, wann jemand angemeldet die App offen hat und welche Seiten er besucht (für die Übersicht
+  unter /admin). Diese Einträge werden nach 180 Tagen gelöscht. Sag deinen Eltern ruhig, dass du das sehen kannst.

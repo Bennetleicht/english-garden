@@ -192,6 +192,17 @@ export function saveExamResult(level: number, percent: number, passed: boolean) 
   });
 }
 
+/** Ergebnis einer Verb-Abfrage: richtig → ein Fach weiter, falsch → zurück ins erste Fach. */
+export function recordVerb(inf: string, ok: boolean) {
+  updateState((s) => {
+    const prev = s.verbs[inf] ?? { box: 0, right: 0, wrong: 0, last: "" };
+    const next = ok
+      ? { ...prev, box: Math.min(5, prev.box + 1), right: prev.right + 1, last: today() }
+      : { ...prev, box: 0, wrong: prev.wrong + 1, last: today() };
+    return { ...s, verbs: { ...s.verbs, [inf]: next } };
+  });
+}
+
 export function saveChapterTest(chapterId: string, percent: number, passed: boolean) {
   updateState((s) => {
     const prev = s.chapterTests[chapterId];

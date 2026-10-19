@@ -38,6 +38,19 @@ export function getSql() {
           updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
           created_at TIMESTAMPTZ NOT NULL DEFAULT now()
         )`;
+      // Erweiterungen (für bestehende Datenbanken nachgerüstet)
+      await sql`ALTER TABLE eg_accounts ADD COLUMN IF NOT EXISTS email TEXT`;
+      await sql`ALTER TABLE eg_accounts ADD COLUMN IF NOT EXISTS last_seen TIMESTAMPTZ`;
+      await sql`CREATE UNIQUE INDEX IF NOT EXISTS eg_accounts_email_idx ON eg_accounts (email)`;
+      // Besuchsprotokoll für die Entwickler-Übersicht (/admin)
+      await sql`
+        CREATE TABLE IF NOT EXISTS eg_events (
+          id BIGSERIAL PRIMARY KEY,
+          account_id INTEGER NOT NULL REFERENCES eg_accounts(id) ON DELETE CASCADE,
+          path TEXT NOT NULL,
+          at TIMESTAMPTZ NOT NULL DEFAULT now()
+        )`;
+      await sql`CREATE INDEX IF NOT EXISTS eg_events_at_idx ON eg_events (at)`;
     })().catch((err) => {
       schemaReady = null;
       throw err;

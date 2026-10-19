@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Check, ChevronRight } from "lucide-react";
+import { Check, ChevronRight, Repeat } from "lucide-react";
 import { Loading, PageHeader } from "@/components/ui";
 import { lessonsForLevel } from "@/lib/content/grammar";
 import { LEVELS } from "@/lib/content/levels";
@@ -16,6 +16,18 @@ export default function GrammarPage() {
       <PageHeader eyebrow="Grammatik" title="Klar erklärt, in Ruhe geübt">
         Jede Lektion erklärt ein Thema auf Deutsch – mit Beispielen und Tipps. Danach folgen ein paar kurze Übungen.
       </PageHeader>
+
+      <Link
+        href="/verben"
+        className="mb-8 flex items-center gap-4 rounded-2xl border border-cream-200 bg-white/80 px-6 py-5 shadow-soft transition-colors hover:border-sage-200"
+      >
+        <Repeat className="h-7 w-7 shrink-0 text-sage-600" aria-hidden />
+        <span className="flex-1">
+          <span className="block font-semibold text-navy-800">Unregelmäßige Verben</span>
+          <span className="block text-navy-600">go – went – gone: rund 100 Verben mit Erklärung und Trainer.</span>
+        </span>
+        <ChevronRight className="h-5 w-5 text-navy-500/40" aria-hidden />
+      </Link>
 
       <div className="space-y-10">
         {LEVELS.map((level) => (

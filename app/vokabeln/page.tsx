@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { CalendarDays, ChevronRight, Plus, Search, Trash2 } from "lucide-react";
+import { CalendarDays, ChevronRight, Plus, Repeat, Search, Trash2 } from "lucide-react";
 import { SpeakButton } from "@/components/SpeakButton";
 import { Button, LinkButton, Loading, PageHeader, Panel } from "@/components/ui";
 import { formatDayGerman } from "@/lib/dates";
@@ -69,6 +69,21 @@ export default function VocabularyPage() {
           <p className="mt-3 font-serif text-xl text-navy-800">Wochenrückblick</p>
           <p className="text-navy-600">Alles, was du diese Woche gelernt hast – mit einer kleinen Wiederholung.</p>
         </Link>
+      </div>
+
+      <div className="mt-6">
+      <Link
+        href="/verben"
+        className="flex items-center gap-4 rounded-2xl border border-cream-200 bg-white/80 px-6 py-5 shadow-soft transition-colors hover:border-sage-200"
+      >
+        <Repeat className="h-7 w-7 shrink-0 text-sage-600" aria-hidden />
+        <span className="flex-1">
+          <span className="block font-semibold text-navy-800">Unregelmäßige Verben</span>
+          <span className="block text-navy-600">go – went – gone: rund 100 Verben mit Erklärung und Trainer.</span>
+        </span>
+        <ChevronRight className="h-5 w-5 text-navy-500/40" aria-hidden />
+      </Link>
+
       </div>
 
       <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

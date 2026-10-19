@@ -42,6 +42,14 @@ export interface WritingEntry {
   summary: string;
 }
 
+/** Lernstand eines unregelmäßigen Verbs (Karteikasten mit Fächern 0–5). */
+export interface VerbStat {
+  box: number;
+  right: number;
+  wrong: number;
+  last: string; // YYYY-MM-DD
+}
+
 export interface Profile {
   name: string;
   level: number; // 1–4
@@ -66,6 +74,7 @@ export interface AppState {
   chapterTests: Record<string, ExamResult>; // bester Kapiteltest je Kapitel
   writing: WritingEntry[];
   exams: Record<number, ExamResult>; // beste Abschlussprüfung je Stufe
+  verbs: Record<string, VerbStat>; // unregelmäßige Verben
 }
 
 export function defaultState(): AppState {
@@ -84,6 +93,7 @@ export function defaultState(): AppState {
     chapterTests: {},
     writing: [],
     exams: {},
+    verbs: {},
   };
 }
 
@@ -110,12 +120,19 @@ export function migrate(raw: unknown): AppState {
     chapterTests: obj(r.chapterTests),
     writing: arr<WritingEntry>(r.writing),
     exams: obj(r.exams),
+    verbs: obj(r.verbs),
   };
 }
 
 /** Hat dieser Stand überhaupt schon Fortschritt? */
 export function hasProgress(s: AppState): boolean {
-  return s.cards.length > 0 || Object.keys(s.lessons).length > 0 || s.activityDays.length > 0 || s.writing.length > 0;
+  return (
+    s.cards.length > 0 ||
+    Object.keys(s.lessons).length > 0 ||
+    Object.keys(s.verbs).length > 0 ||
+    s.activityDays.length > 0 ||
+    s.writing.length > 0
+  );
 }
 
 export function normalizeFront(text: string): string {
@@ -138,6 +155,18 @@ function mergeRecord<T extends { day: string }>(a: Record<string, T>, b: Record<
   for (const key of new Set([...Object.keys(a), ...Object.keys(b)])) {
     const best = bestResult(a[key], b[key], score);
     if (best) out[key] = best;
+  }
+  return out;
+}
+
+/** Pro Verb gilt der Stand mit den meisten Übungsdurchgängen (bei Gleichstand der neuere). */
+function mergeVerbs(a: Record<string, VerbStat>, b: Record<string, VerbStat>): Record<string, VerbStat> {
+  const out: Record<string, VerbStat> = { ...a };
+  for (const [key, vb] of Object.entries(b)) {
+    const va = out[key];
+    const na = va ? va.right + va.wrong : -1;
+    const nb = vb.right + vb.wrong;
+    if (!va || nb > na || (nb === na && vb.last > va.last)) out[key] = vb;
   }
   return out;
 }
@@ -188,5 +217,6 @@ export function mergeStates(aRaw: AppState, bRaw: AppState): AppState {
     chapterTests: mergeRecord(a.chapterTests, b.chapterTests, examScore),
     writing: [...writing.values()].sort((x, y) => y.day.localeCompare(x.day)).slice(0, 30),
     exams: mergeRecord(a.exams as Record<string, ExamResult>, b.exams as Record<string, ExamResult>, examScore),
+    verbs: mergeVerbs(a.verbs, b.verbs),
   };
 }
