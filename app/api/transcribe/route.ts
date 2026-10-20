@@ -30,17 +30,24 @@ export async function POST(req: Request) {
       return Response.json({ error: "Die Aufnahme ist zu lang. Bitte kürzer sprechen." }, { status: 413 });
     }
 
-    const form = new FormData();
-    form.append("file", file, "aufnahme.webm");
-    form.append("model", "whisper-large-v3-turbo");
-    form.append("language", "en");
-    form.append("response_format", "json");
+    // Dateiname mit passender Endung übernehmen (iPhone: mp4, Chrome: webm) – Whisper erkennt das Format daran
+    const fileName = file instanceof File && file.name ? file.name : "aufnahme.webm";
+    const send = (model: string) => {
+      const form = new FormData();
+      form.append("file", file, fileName);
+      form.append("model", model);
+      form.append("language", "en");
+      form.append("response_format", "json");
+      return fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${key}` },
+        body: form,
+      });
+    };
 
-    const res = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}` },
-      body: form,
-    });
+    let res = await send("whisper-large-v3-turbo");
+    // Falls das Turbo-Modell einmal abgeschaltet ist: normales Whisper versuchen
+    if (res.status === 404 || res.status === 400) res = await send("whisper-large-v3");
 
     if (!res.ok) {
       console.error("[transcribe]", res.status, await res.text().catch(() => ""));

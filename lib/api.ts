@@ -62,9 +62,17 @@ export async function postJSON<T>(path: string, body: unknown): Promise<T> {
   return (await res.json()) as T;
 }
 
+/** Dateiendung passend zum Aufnahmeformat (Safari nimmt mp4 auf, Chrome/Firefox webm bzw. ogg). */
+function audioFileName(type: string): string {
+  if (type.includes("mp4") || type.includes("aac") || type.includes("m4a")) return "aufnahme.mp4";
+  if (type.includes("ogg")) return "aufnahme.ogg";
+  if (type.includes("wav")) return "aufnahme.wav";
+  return "aufnahme.webm";
+}
+
 export async function postAudio(path: string, blob: Blob): Promise<{ text: string }> {
   const form = new FormData();
-  form.append("file", blob, "aufnahme.webm");
+  form.append("file", blob, audioFileName(blob.type));
   const res = await request(path, { method: "POST", body: form });
   if (!res.ok) return readError(res);
   return (await res.json()) as { text: string };

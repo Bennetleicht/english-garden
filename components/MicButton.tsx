@@ -1,16 +1,22 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Loader2, Mic, Square } from "lucide-react";
+import { Loader2, Mic, Square, X } from "lucide-react";
 import { getStatus, postAudio } from "@/lib/api";
 import { createRecognition, stopSpeaking, type RecognitionLike } from "@/lib/speech";
 
-type Mode = "browser" | "upload" | "none";
+/** Längste Aufnahme – danach wird automatisch beendet. */
+const MAX_RECORDING_MS = 90_000;
+
+type Engine = "whisper" | "browser";
 
 /**
- * Mikrofon-Knopf. Bevorzugt die kostenlose Spracherkennung des Browsers (Chrome, Edge, Safari).
- * Gibt es die nicht (z. B. Firefox) und ist ein Groq-Schlüssel hinterlegt, wird die Aufnahme
- * an /api/transcribe (Whisper, kostenlos) geschickt.
+ * Mikrofon-Knopf.
+ *
+ * 1. Fragt beim Tippen immer zuerst ausdrücklich nach dem Mikrofon (getUserMedia) – so erscheint die
+ *    Erlaubnis-Abfrage des Browsers zuverlässig, auch dort, wo die Browser-Spracherkennung still scheitert.
+ * 2. Erkennung bevorzugt über Whisper bei Groq (kostenlos, funktioniert in jedem Browser, versteht Akzente gut).
+ *    Ohne Groq-Schlüssel wird die eingebaute Spracherkennung des Browsers genutzt.
  */
 export function MicButton({
   onText,
@@ -21,37 +27,112 @@ export function MicButton({
   onInterim?: (text: string) => void;
   disabled?: boolean;
 }) {
-  const [mode, setMode] = useState<Mode>("none");
+  const [supported, setSupported] = useState(false);
+  const [whisper, setWhisper] = useState(false);
   const [recording, setRecording] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const recognitionRef = useRef<RecognitionLike | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
+  const recognitionRef = useRef<RecognitionLike | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const finalRef = useRef("");
 
   useEffect(() => {
-    if (createRecognition()) {
-      setMode("browser");
-      return;
-    }
-    const canRecord = typeof window !== "undefined" && "MediaRecorder" in window && !!navigator.mediaDevices;
-    if (!canRecord) return;
-    void getStatus().then((s) => setMode(s.transcription ? "upload" : "none"));
+    const canRecord = typeof navigator !== "undefined" && !!navigator.mediaDevices?.getUserMedia;
+    setSupported(canRecord || !!createRecognition());
+    void getStatus().then((s) => setWhisper(s.transcription && canRecord && typeof MediaRecorder !== "undefined"));
   }, []);
+
+  const releaseMic = () => {
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = null;
+  };
 
   useEffect(
     () => () => {
       recognitionRef.current?.abort();
-      recorderRef.current?.stream.getTracks().forEach((t) => t.stop());
+      if (recorderRef.current?.state === "recording") recorderRef.current.stop();
+      releaseMic();
     },
     [],
   );
 
-  if (mode === "none") return null;
+  if (!supported) return null;
 
-  const startBrowser = () => {
+  /* ---------- Mikrofon-Erlaubnis ---------- */
+
+  const requestMic = async (): Promise<MediaStream | null> => {
+    if (!navigator.mediaDevices?.getUserMedia) return null;
+    try {
+      return await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+    } catch (err) {
+      const name = err instanceof DOMException ? err.name : "";
+      if (name === "NotAllowedError" || name === "SecurityError") {
+        setError(
+          "Das Mikrofon ist für diese Seite gesperrt. So erlaubst du es: Am Computer auf das Schloss-Symbol links in der Adressleiste tippen → Mikrofon → Zulassen. Auf dem iPhone: Einstellungen → Safari → Mikrofon → Fragen oder Erlauben. Danach die Seite neu laden.",
+        );
+      } else if (name === "NotFoundError") {
+        setError("Es wurde kein Mikrofon gefunden. Ist eins angeschlossen bzw. eingeschaltet?");
+      } else if (name === "NotReadableError") {
+        setError("Das Mikrofon wird gerade von einer anderen App benutzt (z. B. einem Videoanruf). Bitte diese schließen.");
+      } else {
+        setError("Auf das Mikrofon konnte nicht zugegriffen werden. Bitte die Seite neu laden und noch einmal versuchen.");
+      }
+      return null;
+    }
+  };
+
+  /* ---------- Whisper (Aufnahme hochladen) ---------- */
+
+  const startWhisper = (stream: MediaStream) => {
+    const preferred = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg"];
+    const mimeType = preferred.find((t) => typeof MediaRecorder.isTypeSupported === "function" && MediaRecorder.isTypeSupported(t));
+    const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+    const chunks: Blob[] = [];
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) chunks.push(e.data);
+    };
+    recorder.onstop = async () => {
+      releaseMic();
+      setRecording(false);
+      const blob = new Blob(chunks, { type: recorder.mimeType || mimeType || "audio/webm" });
+      if (blob.size < 1000) {
+        setError("Es wurde nichts aufgenommen. Tippe aufs Mikrofon, sprich und tippe dann noch einmal zum Beenden.");
+        return;
+      }
+      setBusy(true);
+      try {
+        const { text } = await postAudio("/api/transcribe", blob);
+        if (text) onText(text);
+        else setError("Ich habe leider nichts verstanden. Bitte noch einmal etwas lauter sprechen.");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Die Aufnahme konnte nicht verarbeitet werden.");
+      } finally {
+        setBusy(false);
+      }
+    };
+    recorderRef.current = recorder;
+    recorder.start();
+    setRecording(true);
+    timerRef.current = setTimeout(() => {
+      if (recorder.state === "recording") recorder.stop();
+    }, MAX_RECORDING_MS);
+  };
+
+  /* ---------- Spracherkennung des Browsers ---------- */
+
+  const startBrowser = (stream: MediaStream | null) => {
     const rec = createRecognition();
-    if (!rec) return;
+    if (!rec) {
+      releaseMic();
+      setError("Dieser Browser hat keine Spracherkennung. Bitte Chrome, Edge oder Safari verwenden.");
+      return;
+    }
+    // Die Erlaubnis ist erteilt – das Mikrofon übernimmt jetzt die Spracherkennung selbst.
+    stream?.getTracks().forEach((t) => t.stop());
     rec.lang = "en-US";
     rec.interimResults = true;
     rec.continuous = true;
@@ -70,49 +151,34 @@ export function MicButton({
     };
     rec.onerror = (e) => {
       if (e.error === "not-allowed" || e.error === "service-not-allowed") {
-        setError("Bitte erlaube den Zugriff auf das Mikrofon (Symbol in der Adressleiste).");
+        setError(
+          "Die Spracherkennung ist auf diesem Gerät ausgeschaltet. Auf dem iPhone/iPad: Einstellungen → Allgemein → Tastatur → Diktierfunktion einschalten. Alternativ kannst du deine Antwort tippen.",
+        );
+      } else if (e.error === "network") {
+        setError("Die Spracherkennung dieses Browsers funktioniert gerade nicht. Bitte tippe deine Antwort oder nutze Chrome, Edge oder Safari.");
       } else if (e.error !== "no-speech" && e.error !== "aborted") {
         setError("Die Spracherkennung hat gerade nicht geklappt. Bitte noch einmal versuchen.");
       }
     };
     rec.onend = () => {
       setRecording(false);
+      if (timerRef.current) clearTimeout(timerRef.current);
       const text = finalRef.current.trim();
       if (text) onText(text);
     };
     recognitionRef.current = rec;
-    rec.start();
-    setRecording(true);
-  };
-
-  const startUpload = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
-      const chunks: Blob[] = [];
-      recorder.ondataavailable = (e) => e.data.size > 0 && chunks.push(e.data);
-      recorder.onstop = async () => {
-        stream.getTracks().forEach((t) => t.stop());
-        setRecording(false);
-        setBusy(true);
-        try {
-          const { text } = await postAudio("/api/transcribe", new Blob(chunks, { type: recorder.mimeType || "audio/webm" }));
-          if (text) onText(text);
-        } catch (err) {
-          setError(err instanceof Error ? err.message : "Die Aufnahme konnte nicht verarbeitet werden.");
-        } finally {
-          setBusy(false);
-        }
-      };
-      recorderRef.current = recorder;
-      recorder.start();
+      rec.start();
       setRecording(true);
+      timerRef.current = setTimeout(() => rec.stop(), MAX_RECORDING_MS);
     } catch {
-      setError("Bitte erlaube den Zugriff auf das Mikrofon.");
+      setError("Die Spracherkennung konnte nicht gestartet werden. Bitte die Seite neu laden.");
     }
   };
 
-  const toggle = () => {
+  /* ---------- Knopf ---------- */
+
+  const toggle = async () => {
     setError("");
     if (recording) {
       recognitionRef.current?.stop();
@@ -120,27 +186,55 @@ export function MicButton({
       return;
     }
     stopSpeaking();
-    if (mode === "browser") startBrowser();
-    else void startUpload();
+    setBusy(true);
+    const stream = await requestMic();
+    setBusy(false);
+    // Ohne Mikrofon-Erlaubnis geht es nur weiter, wenn der Browser gar kein getUserMedia hat (dann fragt die Spracherkennung selbst)
+    const hasGetUserMedia = typeof navigator.mediaDevices?.getUserMedia === "function";
+    if (!stream && hasGetUserMedia) return;
+
+    const engine: Engine = whisper && stream ? "whisper" : "browser";
+    if (engine === "whisper" && stream) {
+      streamRef.current = stream;
+      startWhisper(stream);
+    } else {
+      startBrowser(stream);
+    }
   };
 
   return (
-    <div className="relative">
+    <>
       <button
         type="button"
-        onClick={toggle}
+        onClick={() => void toggle()}
         disabled={disabled || busy}
         aria-label={recording ? "Aufnahme beenden" : "Sprechen"}
         title={recording ? "Aufnahme beenden" : "Auf Englisch sprechen"}
-        className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full transition-colors disabled:opacity-50 ${
-          recording ? "animate-pulse bg-clay-400 text-white" : "bg-sage-100 text-sage-700 hover:bg-sage-200"
+        className={`relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full transition-colors disabled:opacity-50 ${
+          recording ? "bg-clay-400 text-white" : "bg-sage-100 text-sage-700 hover:bg-sage-200"
         }`}
       >
-        {busy ? <Loader2 className="h-6 w-6 animate-spin" /> : recording ? <Square className="h-5 w-5" /> : <Mic className="h-6 w-6" />}
+        {recording && <span className="absolute inset-0 animate-ping rounded-full bg-clay-400/40" aria-hidden />}
+        {busy ? <Loader2 className="h-6 w-6 animate-spin" /> : recording ? <Square className="relative h-5 w-5" /> : <Mic className="h-6 w-6" />}
       </button>
-      {error && (
-        <p className="absolute bottom-full left-0 mb-2 w-64 rounded-lg bg-clay-50 px-3 py-2 text-sm text-clay-600 shadow-soft">{error}</p>
+
+      {recording && (
+        <span className="pointer-events-none fixed inset-x-4 bottom-36 z-30 mx-auto max-w-sm rounded-xl bg-navy-800/90 px-4 py-2.5 text-center text-white shadow-soft lg:bottom-24">
+          Ich höre zu … Tippe noch einmal auf den Knopf, wenn du fertig bist.
+        </span>
       )}
-    </div>
+
+      {error && (
+        <div
+          role="alert"
+          className="fixed inset-x-4 bottom-36 z-30 mx-auto flex max-w-md gap-3 rounded-xl border border-clay-100 bg-white px-4 py-3 text-navy-700 shadow-soft lg:bottom-24"
+        >
+          <p className="flex-1 text-[15px]">{error}</p>
+          <button type="button" onClick={() => setError("")} aria-label="Hinweis schließen" className="self-start text-navy-500">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+      )}
+    </>
   );
 }
