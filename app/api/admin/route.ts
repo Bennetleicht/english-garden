@@ -24,7 +24,14 @@ function checkAdmin(req: Request): Response | null {
 interface EventRow {
   account_id: number;
   path: string;
-  at: string;
+  at: Date | string;
+}
+
+/** Die Datenbank liefert Zeitpunkte als Date-Objekt – für Vergleich und Ausgabe einheitlich als ISO-Text. */
+function iso(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  const d = value instanceof Date ? value : new Date(String(value));
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
 }
 
 /** GET: Konten mit Lernstand und Besuche der letzten 30 Tage. */
@@ -41,8 +48,8 @@ export async function GET(req: Request) {
       id: number;
       display_name: string;
       email: string | null;
-      created_at: string;
-      last_seen: string | null;
+      created_at: Date | string;
+      last_seen: Date | string | null;
       state: unknown;
     }[];
     const events = (await sql`
@@ -55,12 +62,14 @@ export async function GET(req: Request) {
     const sessions: { accountId: number; start: string; end: string; minutes: number; pages: string[] }[] = [];
     let current: (typeof sessions)[number] | null = null;
     for (const e of events) {
-      const at = new Date(e.at).getTime();
+      const atIso = iso(e.at);
+      if (!atIso) continue;
+      const at = new Date(atIso).getTime();
       if (!current || current.accountId !== e.account_id || at - new Date(current.end).getTime() > SESSION_GAP_MS) {
-        current = { accountId: e.account_id, start: e.at, end: e.at, minutes: 1, pages: [] };
+        current = { accountId: e.account_id, start: atIso, end: atIso, minutes: 1, pages: [] };
         sessions.push(current);
       }
-      current.end = e.at;
+      current.end = atIso;
       current.minutes = Math.max(1, Math.round((at - new Date(current.start).getTime()) / 60_000) + 1);
       if (current.pages[current.pages.length - 1] !== e.path) current.pages.push(e.path);
     }
@@ -74,8 +83,8 @@ export async function GET(req: Request) {
           id: a.id,
           name: a.display_name,
           email: a.email,
-          createdAt: a.created_at,
-          lastSeen: a.last_seen,
+          createdAt: iso(a.created_at),
+          lastSeen: iso(a.last_seen),
           level: s.profile.level,
           lessons: Object.keys(s.lessons).length,
           cards: s.cards.length,
@@ -91,7 +100,8 @@ export async function GET(req: Request) {
     });
   } catch (err) {
     console.error("[admin]", err);
-    return Response.json({ error: "Daten konnten nicht geladen werden." }, { status: 500 });
+    // Nur für Admins sichtbar – die genaue Ursache hilft bei der Fehlersuche
+    return Response.json({ error: `Daten konnten nicht geladen werden (${String(err).slice(0, 200)}).` }, { status: 500 });
   }
 }
 
