@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BookOpen, Home, Layers, MessageCircle, PenLine, Repeat, Settings, Sprout } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
+import { stopSpeaking } from "@/lib/speech";
 import { StreakBadge } from "./StreakBadge";
 
 const NAV = [
@@ -23,6 +24,11 @@ function isActive(pathname: string, href: string) {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+
+  // Beim Seitenwechsel jedes laufende oder noch ladende Vorlesen beenden
+  useEffect(() => {
+    stopSpeaking();
+  }, [pathname]);
 
   // Entwickler-Übersicht ohne App-Rahmen
   if (pathname.startsWith("/admin")) return <main className="min-h-screen px-5 py-10 sm:px-10">{children}</main>;

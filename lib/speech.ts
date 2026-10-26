@@ -101,10 +101,9 @@ function getAudio(): HTMLAudioElement {
 export function primeAudio() {
   try {
     const a = getAudio();
-    if (a.paused) {
-      a.src = SILENT_WAV;
-      void a.play().catch(() => undefined);
-    }
+    a.pause();
+    a.src = SILENT_WAV;
+    void a.play().catch(() => undefined);
   } catch {
     /* ignorieren */
   }
@@ -199,27 +198,32 @@ function speakDevice(text: string, voiceURI: string | undefined, rate: number, m
   const voices = deviceVoices();
   const voice = (voiceURI && voices.find((v) => v.voiceURI === voiceURI)) || pickDefaultVoice(voices);
   synth.cancel();
-  synth.resume();
   keepAlive = [];
+  let started = false;
   const parts = chunks(text);
-  parts.forEach((part, i) => {
+  const utterances = parts.map((part, i) => {
     const u = new SpeechSynthesisUtterance(part);
     if (voice) u.voice = voice;
     u.lang = voice?.lang ?? "en-GB";
     u.rate = rate;
+    u.onstart = () => {
+      started = true;
+    };
     if (i === parts.length - 1) {
       u.onend = () => my === token && onEnd?.();
       u.onerror = () => my === token && onEnd?.();
     }
-    keepAlive.push(u);
-    synth.speak(u);
+    return u;
   });
-  // Chrome verschluckt gelegentlich die erste Äußerung direkt nach cancel() → einmal nachfassen
+  keepAlive = utterances;
+  utterances.forEach((u) => synth.speak(u));
+  // Chrome verschluckt gelegentlich die Äußerung direkt nach cancel(): genau einmal nachfassen –
+  // aber nur, wenn wirklich nichts angefangen hat und nichts mehr in der Warteschlange steht.
   setTimeout(() => {
-    if (my === token && !synth.speaking && !synth.pending && keepAlive.length) {
-      keepAlive.forEach((u) => synth.speak(u));
-    }
-  }, 350);
+    if (my !== token || started || synth.speaking || synth.pending) return;
+    synth.cancel();
+    utterances.forEach((u) => synth.speak(u));
+  }, 600);
 }
 
 /**
@@ -249,7 +253,9 @@ export function speak(text: string, opts: SpeakOptions = {}) {
       if (my !== token) return;
       opts.onLoading?.(false);
       const a = getAudio();
+      a.pause();
       a.src = url;
+      a.currentTime = 0;
       a.playbackRate = rate / 0.92; // 0.92 = normales Tempo der Online-Stimme
       a.onended = () => my === token && opts.onEnd?.();
       a.onerror = () => my === token && opts.onEnd?.();
@@ -266,7 +272,15 @@ export function speak(text: string, opts: SpeakOptions = {}) {
 
 export function stopSpeaking() {
   token++;
-  if (audioEl && !audioEl.paused) audioEl.pause();
+  if (audioEl) {
+    audioEl.onended = null;
+    audioEl.onerror = null;
+    audioEl.pause();
+    // Alte Aufnahme entfernen, damit sie nicht wieder anlaufen kann
+    audioEl.removeAttribute("src");
+    audioEl.load();
+  }
+  keepAlive = [];
   if (synthSupported()) window.speechSynthesis.cancel();
 }
 
