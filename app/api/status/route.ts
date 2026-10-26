@@ -10,5 +10,6 @@ export function GET() {
     provider: provider?.name ?? null,
     transcription: hasTranscription(),
     accounts: accountsEnabled(),
+    tts: Boolean(process.env.GEMINI_API_KEY || process.env.GROQ_API_KEY),
   });
 }

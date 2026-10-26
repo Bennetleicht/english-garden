@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Cloud, Compass, Download, LogOut, RotateCcw, Upload, Volume2 } from "lucide-react";
+import { Cloud, Compass, Download, Loader2, LogOut, RotateCcw, Upload, Volume2 } from "lucide-react";
 import { AccountSettings } from "@/components/AccountSettings";
 import { Button, LinkButton, Loading, PageHeader, Panel } from "@/components/ui";
 import { getStatus, type ServerStatus } from "@/lib/api";
 import { LEVELS } from "@/lib/content/levels";
 import { today } from "@/lib/dates";
-import { loadEnglishVoices, pickDefaultVoice, speak } from "@/lib/speech";
+import { isOnlineVoice, loadEnglishVoices, pickDefaultVoice, speak } from "@/lib/speech";
 import { exportState, replaceState, resetProgress, setProfile, useAppState } from "@/lib/storage";
 import { pushNow, signOut, useSession, useSyncStatus } from "@/lib/sync";
 
@@ -18,6 +18,7 @@ export default function SettingsPage() {
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [status, setStatus] = useState<ServerStatus | null>(null);
   const [message, setMessage] = useState("");
+  const [previewLoading, setPreviewLoading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -105,60 +106,87 @@ export default function SettingsPage() {
 
         <Panel>
           <h2 className="font-serif text-xl text-navy-800">Stimme zum Vorlesen</h2>
-          {voices.length === 0 ? (
-            <p className="mt-3 text-navy-600">Dieser Browser bietet keine englischen Stimmen an.</p>
-          ) : (
-            <>
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <label className="block">
-                  <span className="mb-1.5 block text-navy-600">Stimme</span>
-                  <select className="field" value={currentVoice?.voiceURI ?? ""} onChange={(e) => setProfile({ voiceURI: e.target.value })}>
-                    {voices.map((v) => (
-                      <option key={v.voiceURI} value={v.voiceURI}>
-                        {v.name} ({v.lang})
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="block">
-                  <span className="mb-1.5 block text-navy-600">Sprechtempo: {Math.round(profile.speechRate * 100)} %</span>
-                  <input
-                    type="range"
-                    min={0.6}
-                    max={1.2}
-                    step={0.02}
-                    value={profile.speechRate}
-                    onChange={(e) => setProfile({ speechRate: Number(e.target.value) })}
-                    className="mt-3 w-full accent-sage-600"
-                  />
-                </label>
-              </div>
-              <div className="mt-4 flex flex-wrap items-center gap-4">
-                <Button
-                  variant="secondary"
-                  onClick={() =>
-                    void speak("Hello! It's lovely to hear from you. Shall we practise a little English today?", {
-                      voiceURI: currentVoice?.voiceURI,
-                      rate: profile.speechRate,
-                    })
-                  }
+          <div className="mt-4 grid gap-2 sm:grid-cols-3">
+            {[
+              { value: "online:female", title: "Natürlich · weiblich", text: "Empfohlen – klingt wie ein Mensch" },
+              { value: "online:male", title: "Natürlich · männlich", text: "Ebenso natürlich, tiefere Stimme" },
+              { value: "device", title: "Stimme des Geräts", text: "Funktioniert auch ohne Internet" },
+            ].map((opt) => {
+              const selected = opt.value === "device" ? !isOnlineVoice(profile.voiceURI) : (profile.voiceURI || "online:female") === opt.value;
+              const disabled = opt.value === "device" ? voices.length === 0 : status?.tts === false;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => setProfile({ voiceURI: opt.value === "device" ? (pickDefaultVoice(voices)?.voiceURI ?? "") : opt.value })}
+                  className={`rounded-xl border px-4 py-3 text-left transition-colors disabled:opacity-40 ${
+                    selected ? "border-sage-400 bg-sage-50" : "border-cream-300 bg-white hover:border-sage-300"
+                  }`}
                 >
-                  <Volume2 className="h-4 w-4" /> Probe hören
-                </Button>
-                <label className="flex cursor-pointer items-center gap-3 text-navy-600">
-                  <input
-                    type="checkbox"
-                    className="h-5 w-5 accent-sage-600"
-                    checked={profile.autoSpeak}
-                    onChange={(e) => setProfile({ autoSpeak: e.target.checked })}
-                  />
-                  Antworten im Gespräch automatisch vorlesen
-                </label>
-              </div>
-              <p className="mt-3 text-sm text-navy-500">
-                Tipp: Stimmen mit „Natural“, „Neural“ oder „Google“ im Namen klingen meist am natürlichsten.
-              </p>
-            </>
+                  <span className="block font-semibold text-navy-800">{opt.title}</span>
+                  <span className="block text-sm text-navy-600">{opt.text}</span>
+                </button>
+              );
+            })}
+          </div>
+          {status?.tts === false && (
+            <p className="mt-3 text-sm text-navy-500">Die natürliche Stimme braucht einen KI-Schlüssel (Gemini oder Groq) – bis dahin liest die Gerätestimme vor.</p>
+          )}
+
+          {!isOnlineVoice(profile.voiceURI) && voices.length > 0 && (
+            <label className="mt-4 block">
+              <span className="mb-1.5 block text-navy-600">Gerätestimme (die natürlichsten stehen oben)</span>
+              <select className="field" value={currentVoice?.voiceURI ?? ""} onChange={(e) => setProfile({ voiceURI: e.target.value })}>
+                {voices.map((v) => (
+                  <option key={v.voiceURI} value={v.voiceURI}>
+                    {v.name} ({v.lang})
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+
+          <label className="mt-4 block max-w-sm">
+            <span className="mb-1.5 block text-navy-600">Sprechtempo: {Math.round(profile.speechRate * 100)} %</span>
+            <input
+              type="range"
+              min={0.6}
+              max={1.2}
+              step={0.02}
+              value={profile.speechRate}
+              onChange={(e) => setProfile({ speechRate: Number(e.target.value) })}
+              className="mt-2 w-full accent-sage-600"
+            />
+          </label>
+
+          <div className="mt-4 flex flex-wrap items-center gap-4">
+            <Button
+              variant="secondary"
+              onClick={() =>
+                speak("Hello! It's lovely to hear from you. Shall we practise a little English today?", {
+                  voice: profile.voiceURI,
+                  rate: profile.speechRate,
+                  onLoading: setPreviewLoading,
+                })
+              }
+            >
+              {previewLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Volume2 className="h-4 w-4" />} Probe hören
+            </Button>
+            <label className="flex cursor-pointer items-center gap-3 text-navy-600">
+              <input
+                type="checkbox"
+                className="h-5 w-5 accent-sage-600"
+                checked={profile.autoSpeak}
+                onChange={(e) => setProfile({ autoSpeak: e.target.checked })}
+              />
+              Antworten im Gespräch automatisch vorlesen
+            </label>
+          </div>
+          {isOnlineVoice(profile.voiceURI) && (
+            <p className="mt-3 text-sm text-navy-500">
+              Die natürliche Stimme braucht beim ersten Vorlesen eines Satzes 1–3 Sekunden. Danach ist er gespeichert und kommt sofort.
+            </p>
           )}
         </Panel>
 

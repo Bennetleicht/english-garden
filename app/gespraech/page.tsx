@@ -9,7 +9,7 @@ import { SpeakButton } from "@/components/SpeakButton";
 import { Button, ErrorNote, Loading, PageHeader, Panel } from "@/components/ui";
 import { getStatus, postJSON, type ChatReply, type Correction } from "@/lib/api";
 import { CHAT_TOPICS } from "@/lib/content/topics";
-import { speak } from "@/lib/speech";
+import { primeAudio, speak } from "@/lib/speech";
 import { markActivity, setProfile, useAppState } from "@/lib/storage";
 
 interface Message {
@@ -77,7 +77,7 @@ export default function ConversationPage() {
       });
 
       if (!chosen.prompt && reply.topic) setTopic({ label: reply.topic, prompt: reply.topic });
-      if (profile.autoSpeak) void speak(reply.reply, { voiceURI: profile.voiceURI, rate: profile.speechRate });
+      if (profile.autoSpeak) speak(reply.reply, { voice: profile.voiceURI, rate: profile.speechRate });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Da ist etwas schiefgelaufen.");
     } finally {
@@ -95,6 +95,8 @@ export default function ConversationPage() {
   async function send() {
     const text = input.trim();
     if (!text || loading || !topic) return;
+    // Beim Absenden Ton freischalten, damit die Antwort auch auf dem iPhone vorgelesen werden darf
+    if (profile.autoSpeak) primeAudio();
     const history: Message[] = [...messages, { role: "user", content: text }];
     setMessages(history);
     setInput("");

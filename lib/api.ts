@@ -83,6 +83,7 @@ export interface ServerStatus {
   provider: string | null;
   transcription: boolean;
   accounts: boolean;
+  tts?: boolean;
 }
 
 let statusCache: Promise<ServerStatus> | null = null;
